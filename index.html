@@ -318,11 +318,6 @@
     <button class="btn btn-primary" id="saveProfileBtn" onclick="saveProfile()">💾 Spara bild</button>
     <button class="btn btn-ghost-red" onclick="clearProfilePhoto()">🗑️ Ta bort bild</button>
     <div style="border-top:1px solid var(--border);margin-top:20px;padding-top:20px;display:flex;flex-direction:column;gap:10px;">
-      <button class="btn btn-primary" id="notificationBtn" onclick="toggleNotifications()" style="display:none;">
-        <span id="notificationBtnIcon">🔔</span>
-        <span id="notificationBtnText">Aktivera notiser</span>
-      </button>
-      <div id="notificationStatus" style="font-size:0.75rem;color:var(--text2);text-align:center;display:none;"></div>
       <button class="btn btn-ghost-red" onclick="logout()">🚪 Logga ut</button>
       <button class="btn btn-secondary" onclick="closeModal('profileModal')">Stäng</button>
     </div>
@@ -399,7 +394,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
 
 <script>
 
@@ -436,7 +430,6 @@ const storage = firebase.storage();
 // STATE
 // ═══════════════════════════════════════════════
 let cu = null;           // current user object
-let cachedUsers = [];    // all users, loaded on login
 let pendingUser = null;
 let newPhotoFile = null;
 let profilePhotoFile = null;
@@ -522,29 +515,34 @@ async function renderStart() {
   const grid = document.getElementById('usersGrid');
   grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text2);font-size:0.85rem;">Laddar…</div>';
 
-  const snap = await db.collection('users').orderBy('points', 'desc').get();
-  grid.innerHTML = '';
+  try {
+    const snap = await db.collection('users').orderBy('points', 'desc').get();
+    grid.innerHTML = '';
 
-  snap.forEach(doc => {
-    const u = { id: doc.id, ...doc.data() };
-    const d = document.createElement('div');
-    d.className = 'user-card';
-    d.innerHTML = `
-      ${avHTML(u, 62, 'user-card-av')}
-      <div class="user-name">${u.name}</div>
-      <div class="user-pts">${u.points || 0}p</div>
-    `;
-    d.onclick = () => openLogin(u);
-    grid.appendChild(d);
-  });
+    snap.forEach(doc => {
+      const u = { id: doc.id, ...doc.data() };
+      const d = document.createElement('div');
+      d.className = 'user-card';
+      d.innerHTML = `
+        ${avHTML(u, 62, 'user-card-av')}
+        <div class="user-name">${u.name}</div>
+        <div class="user-pts">${u.points || 0}p</div>
+      `;
+      d.onclick = () => openLogin(u);
+      grid.appendChild(d);
+    });
 
-  const add = document.createElement('div');
-  add.className = 'new-user-card';
-  add.innerHTML = `<div class="plus">＋</div><div class="label">Ny användare</div>`;
-  add.onclick = openCreateModal;
-  grid.appendChild(add);
-
-  document.getElementById('loadingScreen').style.display = 'none';
+    const add = document.createElement('div');
+    add.className = 'new-user-card';
+    add.innerHTML = `<div class="plus">＋</div><div class="label">Ny användare</div>`;
+    add.onclick = openCreateModal;
+    grid.appendChild(add);
+    document.getElementById('loadingScreen').style.display = 'none';
+  } catch (e) {
+    console.error('Kunde inte läsa användare:', e);
+    document.getElementById('loadingScreen').style.display = 'none';
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--wrong);">Kunde inte ansluta till databasen. Kontrollera att Cloud Firestore är aktiverat i Firebase-projektet.</div>';
+  }
 }
 
 // ═══════════════════════════════════════════════
@@ -588,10 +586,6 @@ function openProfile() {
   document.getElementById('profileNameLabel').textContent = cu.name;
   document.getElementById('profileModalTitle').textContent = cu.name;
   document.getElementById('profilePhotoInput').value = '';
-  
-  // Uppdatera notis-status
-  updateNotificationButton();
-  
   openModal('profileModal');
 }
 
@@ -747,17 +741,8 @@ function loginAs(user, restoredTab) {
   showScreen('mainScreen');
   history.replaceState({ screen: 'app', tab: restoredTab || 1 }, '');
   history.pushState({ screen: 'app', tab: restoredTab || 1 }, '');
-  
-  // Cache all users for bet target picker
-  db.collection('users').get().then(snap => {
-    cachedUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  });
-  
   renderApp();
   startListeners();
-  
-  // ═══ Starta notis-lyssnare ═══
-  startNotificationListeners();
   
   // Switch to the saved tab (avoids default tab-1 on reload)
   if (restoredTab && restoredTab !== 1) {
@@ -899,7 +884,6 @@ function startListeners() {
 function stopListeners() {
   if (unsubQuestion) { unsubQuestion(); unsubQuestion = null; }
   if (unsubUsers)    { unsubUsers();    unsubUsers    = null; }
-  stopNotificationListeners();
 }
 
 // ═══════════════════════════════════════════════
