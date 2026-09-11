@@ -415,9 +415,8 @@
   console.error('Firebase SDK kunde inte laddas');
   document.getElementById('loadingScreen').innerHTML = '<div class="loading-logo">Fel vid laddning</div><p style="color:var(--text2);margin-top:10px;">Kontrollera din internetanslutning</p>';
 }
-firebase.initializeApp(firebaseConfig);
-const db  = firebase.firestore();
-const storage = firebase.storage();
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
 
 // Firestore collections:
