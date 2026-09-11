@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #06060a; --surface: #0f0f18; --surface2: #171724;
+    --border: #252538; --accent: #f5a623; --accent2: #fc5c7c;
+    --accent3: #7c5cfc; --text: #f0f0fa; --text2: #8888aa;
+    --correct: #5cfcb4; --wrong: #fc5c7c;
+    --radius: 14px; --radius-sm: 9px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+  body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse 60% 40% at 90% 10%, rgba(245,166,35,0.08) 0%, transparent 60%); pointer-events: none; }
+
+  .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 220px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px 0; z-index: 10; }
+  .sidebar-logo { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800; padding: 0 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; color: var(--accent); }
+  .sidebar-nav { padding: 16px 12px; flex: 1; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.88rem; font-weight: 500; color: var(--text2); margin-bottom: 4px; transition: all 0.18s; border: none; background: none; width: 100%; text-align: left; }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: rgba(245,166,35,0.1); color: var(--accent); font-weight: 600; }
+  .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+  .sidebar-footer { padding: 16px 20px; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--text2); }
+
+  .main { margin-left: 220px; padding: 32px; min-height: 100vh; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .page-header { margin-bottom: 28px; }
+  .page-title { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .page-sub { color: var(--text2); font-size: 0.88rem; }
+
+  .card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 18px; }
+  .card-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+  .input-field { width: 100%; background: var(--surface2); border: 1.5px solid var(--border); border-radius: var(--radius-sm); color: var(--text); padding: 12px 16px; font-family: 'DM Sans', sans-serif; font-size: 0.92rem; margin-bottom: 12px; outline: none; transition: border-color 0.2s; }
+  .input-field:focus { border-color: var(--accent); }
+  .input-field::placeholder { color: var(--text2); }
+  .form-label { font-family: 'Syne', sans-serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; color: var(--text2); text-transform: uppercase; margin-bottom: 6px; display: block; }
+  .form-group { margin-bottom: 16px; }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 11px 22px; border-radius: var(--radius-sm); font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.02em; cursor: pointer; border: none; transition: all 0.18s; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-accent { background: var(--accent); color: #000; }
+  .btn-accent:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(245,166,35,0.3); }
+  .btn-danger { background: rgba(252,92,124,0.12); color: var(--wrong); border: 1.5px solid rgba(252,92,124,0.3); }
+  .btn-danger:hover { background: rgba(252,92,124,0.2); }
+  .btn-success { background: rgba(92,252,180,0.12); color: var(--correct); border: 1.5px solid rgba(92,252,180,0.3); }
+  .btn-success:hover { background: rgba(92,252,180,0.2); }
+  .btn-ghost { background: var(--surface2); color: var(--text2); border: 1.5px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--text2); color: var(--text); }
+  .btn-grade { background: linear-gradient(135deg, var(--correct), #3dd68c); color: #000; font-weight: 800; box-shadow: 0 4px 18px rgba(92,252,180,0.25); }
+  .btn-grade:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(92,252,180,0.35); }
+  .btn-sm { padding: 7px 14px; font-size: 0.78rem; }
+
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th { font-family: 'Syne', sans-serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text2); padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+  .data-table td { padding: 12px 14px; font-size: 0.88rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 100px; font-family: 'Syne', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.03em; }
+  .badge-pending   { background: rgba(245,166,35,0.12); color: var(--accent); }
+  .badge-active    { background: rgba(92,252,180,0.12); color: var(--correct); }
+  .badge-graded    { background: rgba(92,252,180,0.2); color: var(--correct); border: 1px solid rgba(92,252,180,0.4); }
+  .badge-pool      { background: rgba(124,92,252,0.12); color: var(--accent3); }
+
+  .active-question-box { background: linear-gradient(135deg, rgba(245,166,35,0.08), rgba(252,92,124,0.05)); border: 1.5px solid rgba(245,166,35,0.3); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+  .aq-label { font-size: 0.72rem; font-family: 'Syne', sans-serif; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .aq-text { font-family: 'Syne', sans-serif; font-size: 1.05rem; font-weight: 700; margin-bottom: 12px; }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .stat-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 18px; }
+  .stat-value { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; }
+  .stat-label { font-size: 0.78rem; color: var(--text2); margin-top: 4px; }
+
+  .option-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .option-row .input-field { margin-bottom: 0; flex: 1; }
+  .correct-radio { width: 20px; height: 20px; accent-color: var(--correct); cursor: pointer; flex-shrink: 0; }
+  .remove-btn { width: 32px; height: 32px; border-radius: 8px; background: var(--surface2); border: 1.5px solid var(--border); color: var(--wrong); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; transition: all 0.18s; }
+  .remove-btn:hover { background: rgba(252,92,124,0.1); }
+  .add-opt-btn { background: transparent; border: 1.5px dashed var(--border); border-radius: var(--radius-sm); color: var(--text2); padding: 10px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; width: 100%; transition: all 0.18s; }
+  .add-opt-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .upload-area { border: 1.5px dashed var(--border); border-radius: var(--radius); padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 12px; }
+  .upload-area:hover { border-color: var(--accent); }
+  .upload-area input { display: none; }
+  .upload-preview { max-height: 160px; border-radius: var(--radius); margin-top: 10px; object-fit: cover; display: none; }
+
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(6,6,10,0.88); z-index: 100; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(6px); }
+  .modal-overlay.active { display: flex; }
+  .modal { background: var(--surface); border: 1.5px solid var(--border); border-radius: 20px; padding: 28px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.22s ease; }
+  @keyframes slideUp { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal h2 { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; margin-bottom: 18px; }
+
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface); border: 1.5px solid var(--correct); border-radius: var(--radius); padding: 14px 20px; font-size: 0.88rem; color: var(--correct); z-index: 200; animation: slideUp 0.2s ease; display: none; }
+
+  .section-heading { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+
+  @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(1.4); } }
+
+  .av { border-radius: 50%; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; overflow: hidden; background: linear-gradient(135deg, var(--accent3), var(--accent2)); vertical-align: middle; }
+  .av img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 50%; }
+
+  @media (max-width: 700px) { .sidebar { display: none; } .main { margin-left: 0; padding: 16px; } .mobile-nav { display: flex !important; } }
+  .mobile-nav { display: none; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .mobile-nav .nav-item { flex: 1; min-width: 120px; justify-content: center; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+
+  /* ── BINGO BANNER (admin) ── */
+  #adminBingoBanner {
+    display: none; position: fixed; top: 0; left: 220px; right: 0; z-index: 50;
+    background: linear-gradient(135deg, rgba(92,252,180,0.97), rgba(52,214,140,0.97));
+    color: #000; padding: 10px 20px;
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.88rem;
+    text-align: center; box-shadow: 0 3px 16px rgba(92,252,180,0.4);
+    animation: bannerSlideDown 0.3s ease; cursor: pointer;
+  }
+  @keyframes bannerSlideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  #adminBingoBanner.visible { display: block; }
+  @media (max-width: 700px) { #adminBingoBanner { left: 0; } }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-logo">⚙️ QUIZ ADMIN</div>
+  <nav class="sidebar-nav">
+    <button class="nav-item active" onclick="gotoPage('dashboard',this)"><span class="nav-icon">📊</span> Dashboard</button>
+    <button class="nav-item" onclick="gotoPage('questions',this)"><span class="nav-icon">❓</span> Frågor</button>
+    <button class="nav-item" onclick="gotoPage('submitted',this)"><span class="nav-icon">💡</span> Inskickade</button>
+    <button class="nav-item" onclick="gotoPage('users',this)"><span class="nav-icon">👥</span> Användare</button>
+    <button class="nav-item" onclick="gotoPage('create',this)"><span class="nav-icon">✏️</span> Skapa fråga</button>
+    <button class="nav-item" onclick="gotoPage('bingo',this)"><span class="nav-icon">🎯</span> Bingo</button>
+    <button class="nav-item" onclick="gotoPage('betting',this)"><span class="nav-icon">🎰</span> Betting</button>
+  </nav>
+  <div class="sidebar-footer">Quiz Admin · Firebase</div>
+</div>
+
+<div class="main">
+  <div class="mobile-nav">
+    <button class="nav-item" onclick="gotoPage('dashboard',this)">📊 Dashboard</button>
+    <button class="nav-item" onclick="gotoPage('questions',this)">❓ Frågor</button>
+    <button class="nav-item" onclick="gotoPage('submitted',this)">💡 Inskickade</button>
+    <button class="nav-item" onclick="gotoPage('users',this)">👥 Användare</button>
+    <button class="nav-item" onclick="gotoPage('create',this)">✏️ Skapa</button>
+    <button class="nav-item" onclick="gotoPage('bingo',this)">🎯 Bingo</button>
+    <button class="nav-item" onclick="gotoPage('betting',this)">🎰 Betting</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="page-dashboard" class="page active">
+    <div class="page-header"><div class="page-title">Dashboard</div><div class="page-sub">Realtidsöverblick</div></div>
+    <div class="stats-grid" id="statsGrid"></div>
+    <div class="card"><div class="card-title">🔴 Aktiv fråga</div><div id="activeQuestionDisplay">Laddar…</div></div>
+    <div class="card"><div class="card-title">📈 Svarsfördelning</div><div id="answersStats">Laddar…</div></div>	
+
+ <!-- <div class="card-header">
+    <h2 class="card-title">📢 Skicka Global Notis</h2>
+  </div>
+  <div style="padding: 15px;">
+    <input type="text" id="globalNotisTitle" class="input-field" placeholder="Rubrik (t.ex. Viktigt!)" style="margin-bottom: 10px;">
+    <textarea id="globalNotisBody" class="input-field" placeholder="Meddelande till alla..." style="margin-bottom: 10px; min-height: 80px;"></textarea>
+    <button class="btn btn-primary" onclick="sendGlobalPush()" style="width: 100%;">Skicka till alla</button>
+  </div> -->
+</div>
+
+  <!-- QUESTIONS -->
+  <div id="page-questions" class="page">
+    <div class="page-header"><div class="page-title">Alla frågor</div><div class="page-sub">Hantera och publicera frågor</div></div>
+
+    <!-- Aktiv fråga visas här -->
+    <div id="questionsActiveBanner"></div>
+
+    <!-- Frågepool -->
+    <div class="section-heading">Frågepool</div>
+    <div class="card" style="padding:0;overflow:hidden;margin-bottom:28px;">
+      <table class="data-table">
+        <thead><tr><th>Fråga</th><th>Klass/Event</th><th>Poäng</th><th>Status</th><th>Åtgärder</th></tr></thead>
+        <tbody id="questionsTbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Rättade frågor (visas bara om det finns några) -->
+    <div id="gradedQuestionsSection" style="display:none;">
+      <div class="section-heading" style="color:var(--correct);">✅ Rättade frågor</div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <table class="data-table">
+          <thead><tr><th>Fråga</th><th>Klass/Event</th><th>Poäng</th><th>Status</th><th>Åtgärder</th></tr></thead>
+          <tbody id="gradedQuestionsTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUBMITTED -->
+  <div id="page-submitted" class="page">
+    <div class="page-header"><div class="page-title">Inskickade frågor</div><div class="page-sub">Från användare — granska och publicera</div></div>
+    <div id="submittedList"></div>
+  </div>
+
+  <!-- USERS -->
+  <div id="page-users" class="page">
+    <div class="page-header"><div class="page-title">Användare</div><div class="page-sub">Hantera användare och poäng</div></div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <table class="data-table">
+        <thead><tr><th>Namn</th><th>Lösenord</th><th>Poäng</th><th>Svar</th><th>Ändra poäng</th><th>Ta bort</th></tr></thead>
+        <tbody id="usersTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- BINGO -->
+  <div id="page-bingo" class="page">
+    <div class="page-header"><div class="page-title">🎯 Bingo-överblick</div><div class="page-sub">Följ alla spelares bingo-progress i realtid</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;" id="bingoAdminGrid">
+      <div class="card" style="grid-column:1;">
+        <div class="card-title" style="justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <span id="bingoLbTitle">🏆 Närmast bingo <span style="font-size:0.75rem;font-weight:400;color:var(--text2);margin-left:4px;">— bästa rad</span></span>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-ghost btn-sm" id="bingoSortBestLine" onclick="setBingoSort('bestLine')" style="background:rgba(124,92,252,0.15);color:var(--accent3);border-color:rgba(92,252,180,0.4);">🎯 Närmast rad</button>
+            <button class="btn btn-ghost btn-sm" id="bingoSortTotal" onclick="setBingoSort('total')">🔢 Flest ikryssade</button>
+          </div>
+        </div>
+        <div id="bingoLeaderboard"><div style="color:var(--text2);font-size:0.88rem;padding:8px 0;">Laddar…</div></div>
+      </div>
+      <div style="grid-column:2;display:flex;flex-direction:column;gap:14px;">
+        <div class="card">
+          <div class="card-title" style="justify-content:space-between;">
+            <span>⏱ 10 senaste händelserna</span>
+            <button class="btn btn-ghost btn-sm" onclick="renderBingoAdmin()">🔄 Uppdatera</button>
+          </div>
+          <div id="bingoEvents"><div style="color:var(--text2);font-size:0.88rem;padding:8px 0;">Laddar…</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔔 Senaste ikryssade — klicka för att se brickan</div>
+          <div id="bingoRecentChecks"><div style="color:var(--text2);font-size:0.82rem;padding:8px 0;">Laddar…</div></div>
+        </div>
+      </div>
+    </div>
+    <style>
+      @media(max-width:800px){#bingoAdminGrid{grid-template-columns:1fr!important;}#bingoAdminGrid .card{grid-column:1!important;}}
+      .bingo-progress-bar{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-top:6px;}
+      .bingo-progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent3),var(--accent));transition:width 0.4s;}
+      .bingo-player-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+      .bingo-player-row:last-child{border-bottom:none;}
+      .bingo-rank{font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:var(--text2);width:24px;text-align:center;flex-shrink:0;}
+      .bingo-player-info{flex:1;min-width:0;}
+      .bingo-player-name{font-weight:600;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      .bingo-player-meta{font-size:0.75rem;color:var(--text2);margin-top:2px;}
+      .bingo-score{font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:var(--accent);flex-shrink:0;}
+      .bingo-has-bingo{background:rgba(92,252,180,0.08);border:1px solid rgba(92,252,180,0.3);border-radius:var(--radius-sm);padding:3px 8px;font-size:0.7rem;font-family:'Syne',sans-serif;font-weight:700;color:var(--correct);}
+      .event-group{margin-bottom:12px;}
+      .event-header{display:flex;align-items:center;gap:10px;padding:10px 0;cursor:pointer;user-select:none;}
+      .event-header:hover .event-expand-btn{opacity:1;}
+      .event-user-name{font-weight:600;font-size:0.88rem;flex:1;}
+      .event-latest{font-size:0.78rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;}
+      .event-expand-btn{font-size:0.7rem;color:var(--text2);flex-shrink:0;opacity:0.6;transition:opacity 0.2s;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:3px 8px;cursor:pointer;}
+      .event-list{display:none;padding:4px 0 4px 44px;}
+      .event-list.open{display:block;}
+      .event-item{display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+      .event-item:last-child{border-bottom:none;}
+      .event-dot{width:6px;height:6px;border-radius:50%;background:var(--accent3);flex-shrink:0;margin-top:5px;}
+      .event-dot.removed{background:var(--wrong);}
+      .event-text{font-size:0.78rem;color:var(--text2);line-height:1.4;}
+      .event-time{font-size:0.7rem;color:var(--text2);opacity:0.6;white-space:nowrap;margin-left:auto;flex-shrink:0;}
+      .no-events{font-size:0.82rem;color:var(--text2);padding:8px 0;}
+    </style>
+  </div>
+
+  <!-- BETTING -->
+  <div id="page-betting" class="page">
+    <div class="page-header"><div class="page-title">🎰 Betting</div><div class="page-sub">Rätta bets och se allas val</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;" id="bettingAdminGrid">
+      <div class="card">
+        <div class="card-title" style="justify-content:space-between;">
+          <span>🟢 Aktiva bets</span>
+          <button class="btn btn-ghost btn-sm" onclick="renderBettingAdmin()">🔄 Uppdatera</button>
+        </div>
+        <div id="adminBetsList"><div style="color:var(--text2);font-size:0.88rem;padding:8px 0;">Laddar…</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🏁 Avgjorda bets</div>
+        <div id="adminSettledBetsList"><div style="color:var(--text2);font-size:0.88rem;padding:8px 0;">Laddar…</div></div>
+      </div>
+    </div>
+    <style>
+      @media(max-width:800px){#bettingAdminGrid{grid-template-columns:1fr!important;}}
+      .admin-bet-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:16px;margin-bottom:12px;}
+      .admin-bet-card.settled{border-color:rgba(92,252,180,0.3);}
+      .admin-bet-q{font-weight:700;font-size:0.92rem;margin-bottom:4px;font-family:'Syne',sans-serif;}
+      .admin-bet-meta{font-size:0.75rem;color:var(--text2);margin-bottom:12px;}
+      .admin-bet-opt{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:var(--surface);border:1.5px solid var(--border);margin-bottom:6px;cursor:pointer;transition:all 0.18s;}
+      .admin-bet-opt:hover{border-color:var(--correct);}
+      .admin-bet-opt.is-winner{border-color:var(--correct);background:rgba(92,252,180,0.08);}
+      .admin-bet-opt-letter{font-family:'Syne',sans-serif;font-weight:800;font-size:0.75rem;width:22px;text-align:center;flex-shrink:0;color:var(--text2);}
+      .admin-bet-opt-text{flex:1;font-size:0.85rem;}
+      .admin-bet-opt-voters{font-size:0.72rem;color:var(--text2);font-family:'Syne',sans-serif;font-weight:700;}
+      .admin-bet-voter-list{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;padding-left:32px;}
+      .admin-bet-voter-chip{display:inline-flex;align-items:center;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:2px 8px 2px 3px;font-size:0.7rem;}
+      .admin-settle-btn{width:100%;margin-top:8px;}
+    </style>
+  </div>
+
+  <!-- CREATE -->
+  <div id="page-create" class="page">
+    <div class="page-header"><div class="page-title">Skapa fråga</div><div class="page-sub">Lägg till en ny fråga i poolen</div></div>
+    <div class="card">
+      <div class="form-group">
+        <label class="form-label">Frågetext</label>
+        <textarea class="input-field" id="createQText" rows="3" placeholder="Skriv din fråga..." style="resize:vertical;"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bild (valfritt)</label>
+        <div class="upload-area" onclick="document.getElementById('createImgInput').click()">
+          <div style="font-size:1.5rem;">🖼️</div>
+          <div style="font-size:0.82rem;color:var(--text2);margin-top:6px;">Klicka för att ladda upp bild</div>
+          <input type="file" id="createImgInput" accept="image/*" onchange="handleCreateImg(this)">
+          <img id="createImgPreview" class="upload-preview">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Svarsalternativ (● = rätt svar)</label>
+        <div id="createOptionsList"></div>
+        <button class="add-opt-btn" onclick="addCreateOption()">+ Lägg till alternativ</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">🏷️ Klass / Event (valfritt)</label>
+        <input class="input-field" type="text" id="createQClass" placeholder="t.ex. 'Kvällsquiz', 'Runda 1', 'Middag'..." maxlength="60">
+        <div style="font-size:0.72rem;color:var(--text2);margin-top:-6px;margin-bottom:4px;">Syns bara i adminpanelen — hjälper dig sortera frågor per event.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ordning inom event (valfritt)</label>
+        <input class="input-field" type="number" id="createQOrder" placeholder="t.ex. 1, 2, 3..." min="1" style="width:140px;">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Poäng för rätt svar</label>
+        <input class="input-field" type="number" id="createPoints" value="1" min="0" style="width:100px;">
+      </div>
+      <button class="btn btn-accent" id="createQBtn" onclick="createQuestion()" style="width:100%;">Spara fråga →</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h2>✏️ Redigera fråga</h2>
+    <div class="form-group">
+      <label class="form-label">Frågetext</label>
+      <textarea class="input-field" id="editQText" rows="3" style="resize:vertical;"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Bild (valfritt)</label>
+      <div class="upload-area" onclick="document.getElementById('editImgInput').click()">
+        <div style="font-size:1.3rem;">🖼️</div>
+        <div style="font-size:0.8rem;color:var(--text2);">Klicka för att ändra bild</div>
+        <input type="file" id="editImgInput" accept="image/*" onchange="handleEditImg(this)">
+        <img id="editImgPreview" class="upload-preview">
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="clearEditImg()" style="margin-top:8px;">Ta bort bild</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Svarsalternativ</label>
+      <div id="editOptionsList"></div>
+      <button class="add-opt-btn" onclick="addEditOption()">+ Lägg till alternativ</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">🏷️ Klass / Event (valfritt)</label>
+      <input class="input-field" type="text" id="editQClass" placeholder="t.ex. 'Kvällsquiz', 'Runda 1'..." maxlength="60">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ordning inom event (valfritt)</label>
+      <input class="input-field" type="number" id="editQOrder" placeholder="t.ex. 1, 2, 3..." min="1" style="width:140px;">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Poäng</label>
+      <input class="input-field" type="number" id="editPoints" min="0" style="width:100px;">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button class="btn btn-accent" id="saveEditBtn" onclick="saveEditQuestion()" style="flex:1;">Spara →</button>
+      <button class="btn btn-ghost" onclick="closeModal('editModal')" style="flex:1;">Avbryt</button>
+    </div>
+  </div>
+</div>
+
+<!-- USER PTS MODAL -->
+<div class="modal-overlay" id="userPtsModal">
+  <div class="modal" style="max-width:340px;">
+    <h2>✏️ Ändra poäng</h2>
+    <input type="hidden" id="editUserId">
+    <div class="form-group">
+      <label class="form-label">Nytt poängvärde</label>
+      <input class="input-field" type="number" id="editUserPts" min="0">
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-accent" onclick="saveUserPts()" style="flex:1;">Spara</button>
+      <button class="btn btn-ghost" onclick="closeModal('userPtsModal')" style="flex:1;">Avbryt</button>
+    </div>
+  </div>
+</div>
+
+<!-- BINGO INSPECT MODAL -->
+<div class="modal-overlay" id="bingoInspectModal">
+  <div class="modal" style="max-width:520px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+      <div id="bingoInspectAv"></div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;" id="bingoInspectName"></div>
+        <div style="font-size:0.78rem;color:var(--text2);" id="bingoInspectMeta"></div>
+      </div>
+    </div>
+    <div id="bingoInspectBingo" style="display:none;background:linear-gradient(135deg,rgba(92,252,180,0.12),rgba(52,214,140,0.08));border:1.5px solid rgba(92,252,180,0.4);border-radius:10px;padding:8px 14px;margin:10px 0;font-family:'Syne',sans-serif;font-weight:800;font-size:0.88rem;color:var(--correct);">🎉 HAR BINGO!</div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin:14px 0;" id="bingoInspectGrid"></div>
+    <button class="btn btn-ghost" onclick="closeModal('bingoInspectModal')" style="width:100%;margin-top:4px;">Stäng</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="adminBingoBanner" onclick="dismissAdminBingoBanner()"></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+
+<script>
+// ═══════════════════════════════════════════════
+// FIREBASE
+// ═══════════════════════════════════════════════
+// Enkel toast för admin-sidan
+function showToast(msg, isError = false) {
+  const toast = document.createElement('div');
+  toast.style = `
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: ${isError ? '#fc5c7c' : '#5cfcb4'}; color: #000;
+    padding: 12px 24px; border-radius: 50px; font-weight: bold;
+    z-index: 10000; transition: opacity 0.3s;
+  `;
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+  
+  
+  const firebaseConfig = {
+  apiKey: "AIzaSyBsxDTCvqSEevSpTsbTnJKo79VC0muDsNI",
+  authDomain: "davids-svensexa.firebaseapp.com",
+  projectId: "davids-svensexa",
+  storageBucket: "davids-svensexa.firebasestorage.app",
+  messagingSenderId: "488864098079",
+  appId: "1:488864098079:web:8f7e4022dea9033736b22a",
+  measurementId: "G-4NP018ME54"
+};
+firebase.initializeApp(firebaseConfig);
+const db      = firebase.firestore();
+const storage = firebase.storage();
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let editingDocId  = null;
+let editImgFile   = null;
+let editImgUrl    = null;
+let createImgFile = null;
+let unsubDash     = null;
+let unsubAnswers  = null;
+
+// ═══════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════
+function avHTML(user, size, cls = '') {
+  const st = `width:${size}px;height:${size}px;font-size:${Math.round(size * 0.42)}px;`;
+  const letter = (user && user.name) ? user.name[0].toUpperCase() : '?';
+  if (user && user.photo) return `<div class="av ${cls}" style="${st}"><img src="${user.photo}" alt="${user.name}"></div>`;
+  return `<div class="av ${cls}" style="${st}">${letter}</div>`;
+}
+
+function togglePw(el, pw, e) {
+  e.stopPropagation();
+  if (el.dataset.visible === '1') {
+    el.textContent = '••••••';
+    el.dataset.visible = '0';
+    el.title = 'Klicka för att visa lösenord';
+  } else {
+    el.textContent = pw || '(tomt)';
+    el.dataset.visible = '1';
+    el.title = 'Klicka för att dölja';
+    // Auto-hide after 5s
+    setTimeout(() => { if (el.dataset.visible === '1') { el.textContent = '••••••'; el.dataset.visible = '0'; el.title = 'Klicka för att visa lösenord'; } }, 5000);
+  }
+}
+
+function toast(msg, isErr = false) {
+  const t = document.getElementById('toast');
+  t.textContent = (isErr ? '❌ ' : '✅ ') + msg;
+  t.style.borderColor = isErr ? 'var(--wrong)' : 'var(--correct)';
+  t.style.color       = isErr ? 'var(--wrong)' : 'var(--correct)';
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 2800);
+}
+
+async function compressFile(file, maxPx = 800) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > h) { if (w > maxPx) { h = h * maxPx / w; w = maxPx; } }
+        else        { if (h > maxPx) { w = w * maxPx / h; h = maxPx; } }
+        const c = document.createElement('canvas');
+        c.width = Math.round(w); c.height = Math.round(h);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        c.toBlob(blob => resolve(blob), 'image/jpeg', 0.85);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function sendGlobalPush() {
+  const title = document.getElementById('globalNotisTitle').value.trim();
+  const body = document.getElementById('globalNotisBody').value.trim();
+
+  if (!title || !body) {
+    showToast('❌ Fyll i både rubrik och meddelande!', true);
+    return;
+  }
+
+  if (!confirm('Vill du verkligen skicka denna notis till ALLA deltagare?')) return;
+
+  try {
+    // Anropar din befintliga funktion som pratar med Render
+    await sendNotificationToAll(title, body, { type: 'admin_msg' });
+    
+    showToast('🚀 Notis skickad till alla!');
+    
+    // Rensa fälten
+    document.getElementById('globalNotisTitle').value = '';
+    document.getElementById('globalNotisBody').value = '';
+  } catch (err) {
+    console.error(err);
+    showToast('❌ Gick inte att skicka notis', true);
+  }
+}
+
+async function uploadImg(file, path) {
+  const blob = await compressFile(file, 900);
+  const ref = storage.ref(path);
+  await ref.put(blob);
+  return await ref.getDownloadURL();
+}
+
+// ═══════════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════════
+function gotoPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  renderPage(id);
+}
+
+function renderPage(id) {
+  if (id === 'dashboard') renderDashboard();
+  else if (id === 'questions') renderQuestions();
+  else if (id === 'submitted') renderSubmitted();
+  else if (id === 'users') renderUsers();
+  else if (id === 'create') renderCreate();
+  else if (id === 'bingo')   renderBingoAdmin();
+  else if (id === 'betting') renderBettingAdmin();
+}
+
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+// ═══════════════════════════════════════════════
+// DASHBOARD (realtime)
+// ═══════════════════════════════════════════════
+function renderDashboard() {
+  stopDashListeners();
+
+  Promise.all([
+    db.collection('users').get(),
+    db.collection('adminQuestions').get(),
+    db.collection('answers').get(),
+    db.collection('submitted').where('status', '==', 'pending').get()
+  ]).then(([users, qs, ans, sub]) => {
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-card"><div class="stat-value">${users.size}</div><div class="stat-label">Användare</div></div>
+      <div class="stat-card"><div class="stat-value">${qs.size}</div><div class="stat-label">Frågor</div></div>
+      <div class="stat-card"><div class="stat-value">${ans.size}</div><div class="stat-label">Totala svar</div></div>
+      <div class="stat-card"><div class="stat-value">${sub.size}</div><div class="stat-label">Väntande</div></div>
+    `;
+  });
+
+  unsubDash = db.collection('questions').where('active', '==', true)
+    .onSnapshot(async snap => {
+      const aqDiv = document.getElementById('activeQuestionDisplay');
+      const statsDiv = document.getElementById('answersStats');
+
+      if (snap.empty) {
+        aqDiv.innerHTML = '<div style="color:var(--text2);font-size:0.88rem;padding:12px 0;">Ingen aktiv fråga. Gå till Frågor och publicera en.</div>';
+        statsDiv.innerHTML = '<div style="color:var(--text2);font-size:0.85rem;">Ingen aktiv fråga.</div>';
+        return;
+      }
+
+      const q = { id: snap.docs[0].id, ...snap.docs[0].data() };
+      const isGraded = !!q.graded;
+
+      if (unsubAnswers) unsubAnswers();
+      unsubAnswers = db.collection('answers').where('questionId', '==', q.id)
+        .onSnapshot(ansSnap => {
+          const total = ansSnap.size;
+          const counts = q.options.map((_, i) => ansSnap.docs.filter(d => d.data().answerIndex === i).length);
+          const letters = 'ABCDEFGH';
+
+          aqDiv.innerHTML = `
+            <div class="active-question-box" style="${isGraded ? 'border-color:rgba(92,252,180,0.4);background:linear-gradient(135deg,rgba(92,252,180,0.05),rgba(92,252,180,0.02))' : ''}">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                <div class="aq-label" style="margin-bottom:0;${isGraded ? 'color:var(--correct)' : ''}">${isGraded ? '✅ RÄTTAD' : '🔴 LIVE'}</div>
+                ${!isGraded ? '<div style="width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease infinite;flex-shrink:0;"></div>' : ''}
+              </div>
+              <div class="aq-text">${q.text}</div>
+              <div style="font-size:0.8rem;color:var(--text2);margin-bottom:16px;">${total} svar · ${q.points || 1} poäng/rätt${isGraded ? ' · <strong style="color:var(--correct)">Poäng utdelade</strong>' : ''}</div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                ${!isGraded ? `<button class="btn btn-grade btn-sm" onclick="gradeQuestion('${q.id}')">✅ Rätta frågan</button>` : ''}
+                <button class="btn btn-danger btn-sm" onclick="clearActiveQuestion('${q.id}')">${isGraded ? '🗑️ Ta bort & publicera ny' : '🗑️ Avpublicera utan rättning'}</button>
+              </div>
+            </div>`;
+
+          statsDiv.innerHTML = total === 0
+            ? '<div style="color:var(--text2);font-size:0.85rem;">Inga svar ännu.</div>'
+            : q.options.map((opt, i) => {
+                const pct = Math.round(counts[i] / total * 100);
+                const isCorrect = i === q.correctIndex;
+                return `
+                  <div style="margin-bottom:12px;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.85rem;">
+                      <span style="${isCorrect ? 'color:var(--correct);font-weight:600' : ''}">${letters[i]}. ${opt}${isCorrect ? ' ✓' : ''}</span>
+                      <span style="color:var(--text2);">${counts[i]} (${pct}%)</span>
+                    </div>
+                    <div style="background:var(--surface2);border-radius:4px;height:8px;overflow:hidden;">
+                      <div style="height:100%;width:${pct}%;background:${isCorrect ? 'var(--correct)' : 'var(--accent3)'};border-radius:4px;transition:width 0.5s;"></div>
+                    </div>
+                  </div>`;
+              }).join('');
+        });
+    });
+}
+
+function stopDashListeners() {
+  if (unsubDash)    { unsubDash();    unsubDash = null; }
+  if (unsubAnswers) { unsubAnswers(); unsubAnswers = null; }
+}
+
+// ═══════════════════════════════════════════════
+// GRADE QUESTION
+// ═══════════════════════════════════════════════
+async function gradeQuestion(questionId) {
+  const qDoc = await db.collection('questions').doc(questionId).get();
+  if (!qDoc.exists) return;
+  const q = { id: qDoc.id, ...qDoc.data() };
+  if (q.graded) { toast('Frågan är redan rättad'); return; }
+
+  const ansSnap = await db.collection('answers').where('questionId', '==', questionId).get();
+  const total = ansSnap.size;
+
+  if (!confirm(total === 0
+    ? 'Ingen har svarat ännu. Rätta ändå?'
+    : `Rätta frågan? Poäng delas ut till ${total} spelare.`)) return;
+
+  const batch = db.batch();
+  let correctCount = 0;
+
+  const userUpdates = {};
+  ansSnap.docs.forEach(aDoc => {
+    const { userId, answerIndex } = aDoc.data();
+    if (!userUpdates[userId]) userUpdates[userId] = { answerIndex };
+  });
+
+  const userIds = Object.keys(userUpdates);
+  const userDocs = await Promise.all(userIds.map(uid => db.collection('users').doc(uid).get()));
+
+  userDocs.forEach(uDoc => {
+    if (!uDoc.exists) return;
+    const user = { id: uDoc.id, ...uDoc.data() };
+    const answerIndex = userUpdates[user.id].answerIndex;
+    const correct = answerIndex === q.correctIndex;
+    const pts = correct ? (q.points || 1) : 0;
+    if (correct) correctCount++;
+
+    const newHistory = (user.history || []).map(h =>
+      h.questionId === questionId
+        ? { ...h, pending: false, correct, points: pts }
+        : h
+    );
+    if (!newHistory.find(h => h.questionId === questionId)) {
+      newHistory.push({
+        questionId, question: q.text,
+        answer: q.options[answerIndex],
+        pending: false, correct, points: pts,
+        date: new Date().toLocaleDateString('sv-SE')
+      });
+    }
+
+    batch.update(db.collection('users').doc(user.id), {
+      points: firebase.firestore.FieldValue.increment(pts),
+      history: newHistory
+    });
+  });
+
+  batch.update(db.collection('questions').doc(questionId), { graded: true });
+
+  await batch.commit();
+  toast(`Rättad! ${correctCount} av ${total} rätt. Poäng utdelade.`);
+  renderQuestions();
+}
+
+// ═══════════════════════════════════════════════
+// CLEAR ACTIVE QUESTION
+// ═══════════════════════════════════════════════
+async function clearActiveQuestion(questionId) {
+  const qDoc = await db.collection('questions').doc(questionId).get();
+  const isGraded = qDoc.exists && qDoc.data().graded;
+  const msg = isGraded
+    ? 'Ta bort den rättade frågan och gör plats för en ny?'
+    : 'Avpublicera frågan utan att rätta? Inga poäng delas ut.';
+  if (!confirm(msg)) return;
+  await db.collection('questions').doc(questionId).update({ active: false });
+  toast(isGraded ? 'Frågan togs bort' : 'Frågan avpublicerades');
+  renderQuestions();
+}
+
+// ═══════════════════════════════════════════════
+// QUESTIONS  (uppdaterad med banner + rättade)
+// ═══════════════════════════════════════════════
+async function renderQuestions() {
+  const tbody = document.getElementById('questionsTbody');
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text2);">Laddar…</td></tr>';
+
+  const [qSnap, allActiveSnap] = await Promise.all([
+    db.collection('adminQuestions').orderBy('createdAt', 'desc').get(),
+    db.collection('questions').where('active', '==', true).get()
+  ]);
+
+  const activeDoc    = allActiveSnap.docs[0] || null;
+  const activeData   = activeDoc ? activeDoc.data() : null;
+  const activeSourceId = activeData ? activeData.sourceId : null;
+  const isGraded     = activeData ? !!activeData.graded : false;
+
+  // ── Aktiv fråga-banner ──────────────────────────────────────────
+  const bannerContainer = document.getElementById('questionsActiveBanner');
+  if (activeDoc) {
+    const q = activeData;
+    bannerContainer.innerHTML = `
+      <div class="active-question-box" style="margin-bottom:24px;${isGraded
+        ? 'border-color:rgba(92,252,180,0.4);background:linear-gradient(135deg,rgba(92,252,180,0.05),rgba(92,252,180,0.02))'
+        : ''}">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div class="aq-label" style="margin-bottom:0;${isGraded ? 'color:var(--correct)' : ''}">
+            ${isGraded ? '✅ RÄTTAD' : '🔴 LIVE'}
+          </div>
+          ${!isGraded ? '<div style="width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease infinite;flex-shrink:0;"></div>' : ''}
+        </div>
+        <div class="aq-text">${q.text}</div>
+        <div style="font-size:0.8rem;color:var(--text2);margin-bottom:16px;">
+          ${q.points || 1} poäng/rätt${isGraded ? ' · <strong style="color:var(--correct)">Poäng utdelade</strong>' : ''}
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          ${!isGraded
+            ? `<button class="btn btn-grade btn-sm" onclick="gradeQuestion('${activeDoc.id}')">✅ Rätta frågan</button>`
+            : ''}
+          <button class="btn btn-danger btn-sm" onclick="clearActiveQuestion('${activeDoc.id}')">
+            ${isGraded ? '🗑️ Ta bort & publicera ny' : '🗑️ Avpublicera utan rättning'}
+          </button>
+        </div>
+      </div>`;
+  } else {
+    bannerContainer.innerHTML = '';
+  }
+
+  // ── Frågepool ───────────────────────────────────────────────────
+  if (qSnap.empty) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text2);">Inga frågor ännu.</td></tr>';
+  } else {
+    const poolDocs = qSnap.docs.filter(doc => doc.id !== activeSourceId);
+    if (poolDocs.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text2);">Alla frågor är publicerade.</td></tr>';
+    } else {
+      const canPublish = !activeDoc || isGraded;
+      tbody.innerHTML = poolDocs.map(doc => {
+        const q = { id: doc.id, ...doc.data() };
+        return `
+          <tr>
+            <td style="max-width:260px;">
+              <div style="font-weight:500;margin-bottom:3px;">${q.text}</div>
+              <div style="font-size:0.75rem;color:var(--text2);">${q.options.length} alternativ</div>
+            </td>
+            <td style="white-space:nowrap;">${q.eventClass ? `<span style="font-size:0.78rem;color:var(--accent3);font-family:'Syne',sans-serif;font-weight:700;">${q.eventClass}</span>${q.eventOrder ? `<br><span style="font-size:0.68rem;color:var(--text2);">#${q.eventOrder}</span>` : ''}` : '<span style="color:var(--text2);font-size:0.75rem;">—</span>'}</td>
+            <td>${q.points || 1}p</td>
+            <td><span class="badge badge-pool">I pool</span></td>
+            <td>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                ${canPublish
+                  ? `<button class="btn btn-success btn-sm" onclick="publishQuestion('${q.id}')">📢 Publicera</button>`
+                  : `<button class="btn btn-ghost btn-sm" disabled style="opacity:0.4;cursor:not-allowed;" title="Rätta eller ta bort den aktiva frågan först">📢 Publicera</button>`}
+                <button class="btn btn-ghost btn-sm" onclick="openEditQuestion('${q.id}')">✏️ Redigera</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteAdminQuestion('${q.id}')">🗑️</button>
+              </div>
+            </td>
+          </tr>`;
+      }).join('');
+    }
+  }
+
+  // ── Rättade / historiska frågor ─────────────────────────────────
+  let gradedSnap;
+  try {
+    gradedSnap = await db.collection('questions')
+      .where('graded', '==', true)
+      .orderBy('publishedAt', 'desc')
+      .get();
+  } catch (e) {
+    // Fallback utan orderBy om index saknas
+    gradedSnap = await db.collection('questions').where('graded', '==', true).get();
+  }
+
+  const gradedSection = document.getElementById('gradedQuestionsSection');
+  const gradedTbody   = document.getElementById('gradedQuestionsTbody');
+
+  if (gradedSnap.empty) {
+    gradedSection.style.display = 'none';
+  } else {
+    gradedSection.style.display = 'block';
+    gradedTbody.innerHTML = gradedSnap.docs.map(doc => {
+      const q  = { id: doc.id, ...doc.data() };
+      const isCurrentActive = activeDoc && doc.id === activeDoc.id;
+      return `
+        <tr>
+          <td style="max-width:260px;">
+            <div style="font-weight:500;margin-bottom:3px;">${q.text}</div>
+            <div style="font-size:0.75rem;color:var(--text2);">${q.options.length} alternativ</div>
+          </td>
+          <td style="white-space:nowrap;">${q.eventClass ? `<span style="font-size:0.78rem;color:var(--accent3);font-family:'Syne',sans-serif;font-weight:700;">${q.eventClass}</span>${q.eventOrder ? `<br><span style="font-size:0.68rem;color:var(--text2);">#${q.eventOrder}</span>` : ''}` : '<span style="color:var(--text2);font-size:0.75rem;">—</span>'}</td>
+          <td>${q.points || 1}p</td>
+          <td><span class="badge badge-graded">✅ Rättad</span></td>
+          <td>
+            ${isCurrentActive
+              ? `<button class="btn btn-danger btn-sm" onclick="clearActiveQuestion('${doc.id}')">🗑️ Ta bort</button>`
+              : `<span style="color:var(--text2);font-size:0.78rem;font-style:italic;">Avpublicerad</span>`}
+          </td>
+        </tr>`;
+    }).join('');
+  }
+}
+
+async function publishQuestion(adminQId) {
+  const activeSnap = await db.collection('questions').where('active', '==', true).limit(1).get();
+  if (!activeSnap.empty) {
+    const activeQ = activeSnap.docs[0].data();
+    if (!activeQ.graded) {
+      alert('⚠️ Den aktiva frågan är inte rättad ännu.\n\nRätta frågan (eller ta bort den) innan du publicerar nästa.');
+      return;
+    }
+    if (!confirm('Publicera nästa fråga? Den rättade frågan avpubliceras.')) return;
+    await activeSnap.docs[0].ref.update({ active: false });
+  }
+
+  const qDoc = await db.collection('adminQuestions').doc(adminQId).get();
+  const q = qDoc.data();
+  await db.collection('questions').add({
+    ...q, sourceId: adminQId, active: true, graded: false,
+    publishedAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  toast('Frågan publicerades!');
+  renderQuestions();
+}
+
+async function deleteAdminQuestion(id) {
+  if (!confirm('Ta bort frågan?')) return;
+  await db.collection('adminQuestions').doc(id).delete();
+  toast('Frågan togs bort');
+  renderQuestions();
+}
+
+async function openEditQuestion(id) {
+  const doc = await db.collection('adminQuestions').doc(id).get();
+  const q = { id: doc.id, ...doc.data() };
+  editingDocId = id;
+  editImgFile  = null;
+  editImgUrl   = q.image || null;
+
+  document.getElementById('editQText').value = q.text;
+  document.getElementById('editPoints').value = q.points || 1;
+  document.getElementById('editQClass').value = q.eventClass || '';
+  document.getElementById('editQOrder').value = q.eventOrder || '';
+
+  const prev = document.getElementById('editImgPreview');
+  if (q.image) { prev.src = q.image; prev.style.display = 'block'; }
+  else { prev.src = ''; prev.style.display = 'none'; }
+
+  const list = document.getElementById('editOptionsList');
+  list.innerHTML = '';
+  q.options.forEach((opt, i) => addEditOptionVal(opt, i === q.correctIndex));
+  openModal('editModal');
+}
+
+function addEditOption() { addEditOptionVal('', false); }
+function addEditOptionVal(val, correct) {
+  const list = document.getElementById('editOptionsList');
+  const row = document.createElement('div');
+  row.className = 'option-row';
+  row.innerHTML = `
+    <input type="radio" name="editCorrect" class="correct-radio" ${correct ? 'checked' : ''} title="Rätt svar">
+    <input class="input-field" type="text" value="${val}" placeholder="Alternativ...">
+    <button class="remove-btn" onclick="this.parentElement.remove()">✕</button>`;
+  list.appendChild(row);
+}
+
+function handleEditImg(input) {
+  const f = input.files[0]; if (!f) return;
+  editImgFile = f;
+  const r = new FileReader();
+  r.onload = e => {
+    const p = document.getElementById('editImgPreview');
+    p.src = e.target.result; p.style.display = 'block';
+  };
+  r.readAsDataURL(f);
+}
+
+function clearEditImg() {
+  editImgFile = null; editImgUrl = null;
+  const p = document.getElementById('editImgPreview');
+  p.src = ''; p.style.display = 'none';
+}
+
+async function saveEditQuestion() {
+  const btn = document.getElementById('saveEditBtn');
+  btn.disabled = true; btn.textContent = 'Sparar…';
+  try {
+    const rows = document.querySelectorAll('#editOptionsList .option-row');
+    const options = []; let correctIndex = 0;
+    rows.forEach((row) => {
+      const radio = row.querySelector('.correct-radio');
+      const input = row.querySelector('input[type="text"]');
+      if (input.value.trim()) {
+        if (radio.checked) correctIndex = options.length;
+        options.push(input.value.trim());
+      }
+    });
+    if (!document.getElementById('editQText').value.trim()) { alert('Frågetext saknas.'); return; }
+    if (options.length < 2) { alert('Minst 2 alternativ.'); return; }
+
+    let imageUrl = editImgUrl;
+    if (editImgFile) imageUrl = await uploadImg(editImgFile, `question-images/${editingDocId}.jpg`);
+
+    await db.collection('adminQuestions').doc(editingDocId).update({
+      text: document.getElementById('editQText').value.trim(),
+      options, correctIndex,
+      points: parseInt(document.getElementById('editPoints').value) || 1,
+      eventClass: document.getElementById('editQClass').value.trim() || null,
+      eventOrder: parseInt(document.getElementById('editQOrder').value) || null,
+      image: imageUrl || null
+    });
+
+    closeModal('editModal');
+    toast('Frågan sparades!');
+    renderQuestions();
+  } finally {
+    btn.disabled = false; btn.textContent = 'Spara →';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// SUBMITTED
+// ═══════════════════════════════════════════════
+async function renderSubmitted() {
+  const list = document.getElementById('submittedList');
+  list.innerHTML = '<div style="color:var(--text2);padding:20px;">Laddar…</div>';
+
+  const snap = await db.collection('submitted').where('status', '==', 'pending')
+    .orderBy('submittedAt', 'desc').get();
+
+  if (snap.empty) {
+    list.innerHTML = '<div style="color:var(--text2);padding:24px;text-align:center;">Inga inskickade frågor att granska.</div>';
+    return;
+  }
+
+  list.innerHTML = snap.docs.map(doc => {
+    const q = { id: doc.id, ...doc.data() };
+    return `
+      <div class="card" style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+          <div style="flex:1;">
+            <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:6px;">${q.text}</div>
+            <div style="font-size:0.78rem;color:var(--text2);margin-bottom:10px;">
+              Skickat av: ${typeof q.submittedBy === 'object' ? q.submittedBy.name : (q.submittedBy || 'Okänd')}
+            </div>
+            ${q.image ? `<img src="${q.image}" style="max-height:120px;border-radius:8px;object-fit:cover;margin-bottom:10px;">` : ''}
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              ${q.options.map((opt, i) => `
+                <div style="font-size:0.85rem;background:var(--surface2);padding:8px 12px;border-radius:8px;display:flex;align-items:center;gap:8px;">
+                  <span>${'ABCDEFGH'[i]}.</span><span>${opt}</span>
+                  ${q.correctIndex === i ? '<span style="color:var(--correct);margin-left:auto;">✓ Rätt</span>' : ''}
+                </div>`).join('')}
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;min-width:140px;">
+            <button class="btn btn-success btn-sm" onclick="acceptSubmitted('${q.id}')">✅ Lägg till pool</button>
+            <button class="btn btn-accent btn-sm" onclick="publishSubmitted('${q.id}')">📢 Publicera direkt</button>
+            <button class="btn btn-danger btn-sm" onclick="rejectSubmitted('${q.id}')">🗑️ Avvisa</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function acceptSubmitted(id) {
+  const doc = await db.collection('submitted').doc(id).get();
+  const q = doc.data();
+  await db.collection('adminQuestions').add({
+    text: q.text, options: q.options,
+    correctIndex: q.correctIndex ?? 0,
+    image: q.image || null, points: 1,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  await db.collection('submitted').doc(id).update({ status: 'accepted' });
+  toast('Frågan lades till i poolen!');
+  renderSubmitted();
+}
+
+async function publishSubmitted(id) {
+  const activeSnap = await db.collection('questions').where('active', '==', true).limit(1).get();
+  if (!activeSnap.empty) {
+    const activeQ = activeSnap.docs[0].data();
+    if (!activeQ.graded) {
+      alert('⚠️ Den aktiva frågan är inte rättad ännu.\n\nRätta frågan (eller ta bort den) innan du publicerar nästa.');
+      return;
+    }
+    if (!confirm('Publicera nästa fråga? Den rättade frågan avpubliceras.')) return;
+    await activeSnap.docs[0].ref.update({ active: false });
+  }
+
+  const doc = await db.collection('submitted').doc(id).get();
+  const q = doc.data();
+  const adminRef = await db.collection('adminQuestions').add({
+    text: q.text, options: q.options,
+    correctIndex: q.correctIndex ?? 0,
+    image: q.image || null, points: 1,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  await db.collection('questions').add({
+    text: q.text, options: q.options,
+    correctIndex: q.correctIndex ?? 0,
+    image: q.image || null, points: 1,
+    sourceId: adminRef.id, active: true, graded: false,
+    publishedAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  await db.collection('submitted').doc(id).update({ status: 'published' });
+  toast('Frågan publicerades direkt!');
+  renderSubmitted();
+}
+
+async function rejectSubmitted(id) {
+  if (!confirm('Avvisa frågan?')) return;
+  await db.collection('submitted').doc(id).update({ status: 'rejected' });
+  toast('Frågan avvisades');
+  renderSubmitted();
+}
+
+// ═══════════════════════════════════════════════
+// USERS
+// ═══════════════════════════════════════════════
+async function renderUsers() {
+  const tbody = document.getElementById('usersTbody');
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text2);">Laddar…</td></tr>';
+
+  const snap = await db.collection('users').orderBy('points', 'desc').get();
+  if (snap.empty) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text2);">Inga användare.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = snap.docs.map(doc => {
+    const u = { id: doc.id, ...doc.data() };
+    return `
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            ${avHTML(u, 32, '')}
+            <span style="font-weight:500;">${u.name}</span>
+          </div>
+        </td>
+        <td>
+          <span class="pw-mask" onclick="togglePw(this,'${(u.password||'').replace(/'/g,"\\'")}',event)" title="Klicka för att visa lösenord" style="cursor:pointer;letter-spacing:0.12em;font-family:'Syne',sans-serif;font-weight:700;color:var(--accent);">••••••</span>
+        </td>
+        <td style="font-family:'Syne',sans-serif;font-weight:700;color:var(--correct);">${u.points || 0}</td>
+        <td>${(u.history || []).length}</td>
+        <td><button class="btn btn-ghost btn-sm" onclick="openEditPts('${u.id}',${u.points || 0})">✏️ Ändra</button></td>
+        <td><button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">🗑️</button></td>
+      </tr>`;
+  }).join('');
+}
+
+function openEditPts(uid, pts) {
+  document.getElementById('editUserId').value = uid;
+  document.getElementById('editUserPts').value = pts;
+  openModal('userPtsModal');
+}
+
+async function saveUserPts() {
+  const uid = document.getElementById('editUserId').value;
+  const pts = parseInt(document.getElementById('editUserPts').value) || 0;
+  await db.collection('users').doc(uid).update({ points: pts });
+  closeModal('userPtsModal');
+  toast('Poängen uppdaterades!');
+  renderUsers();
+}
+
+async function deleteUser(uid) {
+  if (!confirm('Ta bort användaren permanent?')) return;
+  await db.collection('users').doc(uid).delete();
+  toast('Användaren borttagen');
+  renderUsers();
+}
+
+// ═══════════════════════════════════════════════
+// CREATE QUESTION
+// ═══════════════════════════════════════════════
+function renderCreate() {
+  const list = document.getElementById('createOptionsList');
+  if (!list.children.length) { addCreateOption(); addCreateOption(); }
+}
+
+function addCreateOption() {
+  const list = document.getElementById('createOptionsList');
+  const row = document.createElement('div');
+  row.className = 'option-row';
+  row.innerHTML = `
+    <input type="radio" name="createCorrect" class="correct-radio" title="Rätt svar">
+    <input class="input-field" type="text" placeholder="Alternativ ${list.children.length + 1}...">
+    <button class="remove-btn" onclick="this.parentElement.remove()">✕</button>`;
+  list.appendChild(row);
+}
+
+function handleCreateImg(input) {
+  const f = input.files[0]; if (!f) return;
+  createImgFile = f;
+  const r = new FileReader();
+  r.onload = e => { const p = document.getElementById('createImgPreview'); p.src = e.target.result; p.style.display = 'block'; };
+  r.readAsDataURL(f);
+}
+
+async function createQuestion() {
+  const text = document.getElementById('createQText').value.trim();
+  const rows = document.querySelectorAll('#createOptionsList .option-row');
+  const options = []; let correctIndex = 0;
+  rows.forEach((row) => {
+    const radio = row.querySelector('.correct-radio');
+    const input = row.querySelector('input[type="text"]');
+    if (input.value.trim()) {
+      if (radio.checked) correctIndex = options.length;
+      options.push(input.value.trim());
+    }
+  });
+  if (!text) { alert('Ange en fråga.'); return; }
+  if (options.length < 2) { alert('Lägg till minst 2 alternativ.'); return; }
+
+  const btn = document.getElementById('createQBtn');
+  btn.disabled = true; btn.textContent = 'Sparar…';
+  try {
+    let imageUrl = null;
+    if (createImgFile) imageUrl = await uploadImg(createImgFile, `question-images/${Date.now()}.jpg`);
+
+    await db.collection('adminQuestions').add({
+      text, options, correctIndex, image: imageUrl,
+      points: parseInt(document.getElementById('createPoints').value) || 1,
+      eventClass: document.getElementById('createQClass').value.trim() || null,
+      eventOrder: parseInt(document.getElementById('createQOrder').value) || null,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    document.getElementById('createQText').value = '';
+    document.getElementById('createPoints').value = '1';
+    document.getElementById('createQClass').value = '';
+    document.getElementById('createQOrder').value = '';
+    document.getElementById('createOptionsList').innerHTML = '';
+    document.getElementById('createImgPreview').style.display = 'none';
+    document.getElementById('createImgInput').value = '';
+    createImgFile = null;
+    addCreateOption(); addCreateOption();
+    toast('Frågan skapades!');
+  } catch (e) {
+    toast('Fel: ' + e.message, true);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Spara fråga →';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// BINGO ADMIN
+// ═══════════════════════════════════════════════
+function getBingoLines(marked) {
+  const lines = [];
+  for (let r = 0; r < 5; r++) {
+    const row = [r*5, r*5+1, r*5+2, r*5+3, r*5+4];
+    if (row.every(i => marked[i])) lines.push(row);
+  }
+  for (let c = 0; c < 5; c++) {
+    const col = [c, c+5, c+10, c+15, c+20];
+    if (col.every(i => marked[i])) lines.push(col);
+  }
+  return lines;
+}
+
+function bestLineProgress(marked) {
+  const allLines = [];
+  for (let r = 0; r < 5; r++) allLines.push([r*5, r*5+1, r*5+2, r*5+3, r*5+4]);
+  for (let c = 0; c < 5; c++) allLines.push([c, c+5, c+10, c+15, c+20]);
+  let best = 0;
+  allLines.forEach(line => { const count = line.filter(i => marked[i]).length; if (count > best) best = count; });
+  return best;
+}
+
+function formatEventTime(ts) {
+  if (!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  const now = new Date();
+  const diff = Math.floor((now - d) / 1000);
+  if (diff < 60) return `${diff}s sedan`;
+  if (diff < 3600) return `${Math.floor(diff/60)}m sedan`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}h sedan`;
+  return d.toLocaleDateString('sv-SE');
+}
+
+let _bingoSort = 'bestLine'; // 'bestLine' | 'total'
+
+function setBingoSort(mode) {
+  _bingoSort = mode;
+  document.getElementById('bingoSortBestLine').style.background = mode === 'bestLine' ? 'rgba(92,252,180,0.12)' : '';
+  document.getElementById('bingoSortBestLine').style.color = mode === 'bestLine' ? 'var(--accent3)' : '';
+  document.getElementById('bingoSortBestLine').style.borderColor = mode === 'bestLine' ? 'rgba(92,252,180,0.4)' : '';
+  document.getElementById('bingoSortTotal').style.background = mode === 'total' ? 'rgba(245,166,35,0.12)' : '';
+  document.getElementById('bingoSortTotal').style.color = mode === 'total' ? 'var(--accent)' : '';
+  document.getElementById('bingoSortTotal').style.borderColor = mode === 'total' ? 'rgba(245,166,35,0.4)' : '';
+  renderBingoAdmin();
+}
+
+async function renderBingoAdmin() {
+  const [bingoSnap, eventsSnap] = await Promise.all([
+    db.collection('bingo').get(),
+    db.collection('bingoEvents').orderBy('at', 'desc').limit(200).get()
+  ]);
+
+  const lbEl = document.getElementById('bingoLeaderboard');
+  if (bingoSnap.empty) {
+    lbEl.innerHTML = '<div style="color:var(--text2);font-size:0.82rem;padding:8px 0;">Ingen har startat bingo ännu.</div>';
+  } else {
+    const players = bingoSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    if (_bingoSort === 'bestLine') {
+      // Sort by best line progress (nearest bingo)
+      players.sort((a, b) => {
+        const aBest = bestLineProgress(a.marked||[]), bBest = bestLineProgress(b.marked||[]);
+        if (bBest !== aBest) return bBest - aBest;
+        return (b.marked||[]).filter(Boolean).length - (a.marked||[]).filter(Boolean).length;
+      });
+    } else {
+      // Sort by total checked
+      players.sort((a, b) => {
+        const aM = (a.marked||[]).filter(Boolean).length, bM = (b.marked||[]).filter(Boolean).length;
+        return bM - aM;
+      });
+    }
+
+    lbEl.innerHTML = players.map((p, idx) => {
+      const marked = (p.marked||[]).filter(Boolean).length;
+      const lines = getBingoLines(p.marked||[]).length;
+      const best = bestLineProgress(p.marked||[]);
+      const pct = Math.round(marked/25*100);
+      const metaText = _bingoSort === 'bestLine'
+        ? `${marked}/25 rutor · bästa rad: ${best}/5`
+        : `${marked}/25 rutor markerade`;
+      return `
+        <div class="bingo-player-row" style="cursor:pointer;" onclick="openBingoInspect('${p.id}')" title="Klicka för att se brickan">
+          <div class="bingo-rank">${idx+1}</div>
+          ${avHTML({name:p.userName,photo:p.userPhoto},34,'')}
+          <div class="bingo-player-info">
+            <div class="bingo-player-name">${p.userName}</div>
+            <div class="bingo-player-meta">${metaText}</div>
+            <div class="bingo-progress-bar"><div class="bingo-progress-fill" style="width:${pct}%"></div></div>
+          </div>
+          ${lines>0 ? `<div class="bingo-has-bingo">🎉 BINGO!</div>` : `<div class="bingo-score" style="${_bingoSort==='total'?'color:var(--accent)':''}">${_bingoSort==='bestLine'?best+'/5':marked}</div>`}
+        </div>`;
+    }).join('');
+  }
+
+  const evEl = document.getElementById('bingoEvents');
+  // Senaste ikryssade panel
+  const recentEl = document.getElementById('bingoRecentChecks');
+
+  if (eventsSnap.empty) {
+    evEl.innerHTML = '<div class="no-events">Inga händelser loggade ännu.</div>';
+    recentEl.innerHTML = '<div style="color:var(--text2);font-size:0.82rem;padding:8px 0;">Inga händelser ännu.</div>';
+    return;
+  }
+
+  // ── Flat top-10 senaste händelserna (oavsett spelare) ──
+  const allEvents = eventsSnap.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .slice(0, 10); // already ordered by 'at' desc, limit 200, take first 10
+
+  if (allEvents.length === 0) {
+    evEl.innerHTML = '<div class="no-events">Inga händelser ännu.</div>';
+  } else {
+    evEl.innerHTML = allEvents.map(e => {
+      const isUnmark = e.action !== 'mark';
+      return `
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="openBingoInspect('${e.userId}')">
+          ${avHTML({name:e.userName,photo:e.userPhoto},30,'')}
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:0.83rem;font-weight:600;">${e.userName}</div>
+            <div style="font-size:0.75rem;color:${isUnmark ? 'var(--wrong)' : 'var(--accent3)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              ${isUnmark ? '↩️ Avmarkerade' : '✅ Markerade'}: ${e.item}
+            </div>
+          </div>
+          <div style="font-size:0.68rem;color:var(--text2);flex-shrink:0;">${formatEventTime(e.at)}</div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── Senaste ikryssade (mark only) — klickbar för att inspektera bricka ──
+  const markEvents = eventsSnap.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .filter(e => e.action === 'mark')
+    .slice(0, 10);
+
+  if (markEvents.length === 0) {
+    recentEl.innerHTML = '<div style="color:var(--text2);font-size:0.82rem;padding:8px 0;">Ingen har kryssat i ännu.</div>';
+  } else {
+    recentEl.innerHTML = markEvents.map(e => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s;border-radius:6px;" onclick="openBingoInspect('${e.userId}')" title="Klicka för att se ${e.userName}s bingobricka">
+        ${avHTML({name:e.userName,photo:e.userPhoto},30,'')}
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:0.83rem;font-weight:600;">${e.userName}</div>
+          <div style="font-size:0.75rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">✅ ${e.item}</div>
+        </div>
+        <div style="font-size:0.68rem;color:var(--accent3);flex-shrink:0;">🔍 Visa bricka</div>
+      </div>`).join('');
+  }
+}
+
+// ═══════════════════════════════════════════════
+// BINGO INSPECT (admin: visa spelarens bricka)
+// ═══════════════════════════════════════════════
+async function openBingoInspect(userId) {
+  const doc = await db.collection('bingo').doc(userId).get();
+  if (!doc.exists) { toast('Ingen bricka hittades för denna spelare', true); return; }
+  const p = { id: doc.id, ...doc.data() };
+  const marked = p.marked || Array(25).fill(false);
+  const card   = p.card   || Array(25).fill('');
+
+  // Lines for highlighting
+  const lines = [];
+  for (let r = 0; r < 5; r++) {
+    const row = [r*5, r*5+1, r*5+2, r*5+3, r*5+4];
+    if (row.every(i => marked[i])) lines.push(row);
+  }
+  for (let c = 0; c < 5; c++) {
+    const col = [c, c+5, c+10, c+15, c+20];
+    if (col.every(i => marked[i])) lines.push(col);
+  }
+  const lineSet = new Set(lines.flat());
+
+  const totalMarked = marked.filter(Boolean).length;
+  const hasBingo = lines.length > 0;
+
+  document.getElementById('bingoInspectAv').innerHTML = avHTML({name:p.userName,photo:p.userPhoto}, 44, '');
+  document.getElementById('bingoInspectName').textContent = p.userName || 'Okänd';
+  document.getElementById('bingoInspectMeta').textContent = `${totalMarked}/25 rutor ikryssade · ${lines.length} bingo${lines.length !== 1 ? 's' : ''}`;
+  document.getElementById('bingoInspectBingo').style.display = hasBingo ? 'block' : 'none';
+
+  const grid = document.getElementById('bingoInspectGrid');
+  grid.innerHTML = card.map((item, i) => {
+    const isMarked = marked[i];
+    const isLine   = lineSet.has(i);
+    let bg = 'background:var(--surface2);border:1.5px solid var(--border);color:var(--text2);';
+    if (isLine)        bg = 'background:linear-gradient(135deg,var(--accent3),#3dd68c);border:1.5px solid var(--accent3);color:#000;';
+    else if (isMarked) bg = 'background:linear-gradient(135deg,var(--accent3),var(--accent));border:1.5px solid var(--accent);color:#fff;';
+    return `<div style="aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:0.52rem;font-weight:600;padding:4px;line-height:1.2;position:relative;overflow:hidden;${bg}">
+      ${isMarked ? `<img src="https://firebasestorage.googleapis.com/v0/b/davids-svensexa.firebasestorage.app/o/Dave1.png?alt=media" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.3;border-radius:6px;pointer-events:none;" alt="">` : ''}
+      <span style="position:relative;z-index:1;">${item}</span>
+    </div>`;
+  }).join('');
+
+  openModal('bingoInspectModal');
+}
+
+function toggleEventGroup(id, headerEl) {
+  const list = document.getElementById(id);
+  const isOpen = list.classList.toggle('open');
+  const btn = headerEl.querySelector('.event-expand-btn');
+  if (btn) btn.textContent = (isOpen ? '▲ ' : '▼ ') + btn.textContent.slice(2);
+}
+
+// ═══════════════════════════════════════════════
+// BETTING ADMIN
+// ═══════════════════════════════════════════════
+const BET_LETTERS = 'ABCDEFGH';
+
+async function renderBettingAdmin() {
+  const [betsSnap, allEntriesSnap] = await Promise.all([
+    db.collection('bets').orderBy('createdAt', 'desc').get(),
+    db.collection('betEntries').get()
+  ]);
+
+  const entriesByBet = {};
+  allEntriesSnap.docs.forEach(d => {
+    const e = d.data();
+    if (!entriesByBet[e.betId]) entriesByBet[e.betId] = [];
+    entriesByBet[e.betId].push(e);
+  });
+
+  function renderAdminBetCard(doc) {
+    const bet = { id: doc.id, ...doc.data() };
+    const entries = entriesByBet[bet.id] || [];
+    const isSettled = bet.status === 'settled';
+
+    const optsHtml = bet.options.map((opt, i) => {
+      const voters = entries.filter(e => e.optionIndex === i);
+      const isWinner = isSettled && bet.winningIndex === i;
+      const voterChips = voters.map(v =>
+        `<span class="admin-bet-voter-chip">${avHTML({name:v.userName,photo:v.userPhoto},16,'')} ${v.userName}</span>`
+      ).join('');
+      return `
+        <div class="admin-bet-opt${isWinner ? ' is-winner' : ''}" ${!isSettled ? `onclick="settleBet('${bet.id}',${i})"` : ''} title="${!isSettled ? 'Klicka för att välja som vinnare' : ''}">
+          <span class="admin-bet-opt-letter">${BET_LETTERS[i]}</span>
+          <span class="admin-bet-opt-text">${opt}${isWinner ? ' ✅ Vinnare' : ''}</span>
+          <span class="admin-bet-opt-voters">${voters.length} röst${voters.length!==1?'er':''}</span>
+        </div>
+        ${voters.length ? `<div class="admin-bet-voter-list">${voterChips}</div>` : ''}`;
+    }).join('');
+
+    return `
+      <div class="admin-bet-card${isSettled ? ' settled' : ''}">
+        <div class="admin-bet-q">${bet.question}</div>
+        <div class="admin-bet-meta">Av ${bet.createdBy} · ${entries.length} deltagare${isSettled ? ' · 🏁 Avgjord' : ' · 🟢 Öppen'}</div>
+        ${optsHtml}
+        ${!isSettled ? `<div style="font-size:0.72rem;color:var(--text2);margin-top:8px;text-align:center;">Klicka på ett alternativ för att rätta betet</div>` : ''}
+        ${!isSettled ? `<button class="btn btn-danger btn-sm admin-settle-btn" onclick="deleteBet('${bet.id}')">🗑️ Ta bort bet</button>` : ''}
+      </div>`;
+  }
+
+  const openBets    = betsSnap.docs.filter(d => d.data().status === 'open');
+  const settledBets = betsSnap.docs.filter(d => d.data().status === 'settled');
+
+  document.getElementById('adminBetsList').innerHTML = openBets.length
+    ? openBets.map(renderAdminBetCard).join('')
+    : '<div style="color:var(--text2);font-size:0.82rem;padding:8px 0;">Inga aktiva bets.</div>';
+
+  document.getElementById('adminSettledBetsList').innerHTML = settledBets.length
+    ? settledBets.map(renderAdminBetCard).join('')
+    : '<div style="color:var(--text2);font-size:0.82rem;padding:8px 0;">Inga avgjorda bets ännu.</div>';
+}
+
+async function settleBet(betId, winningIndex) {
+  const bet = (await db.collection('bets').doc(betId).get()).data();
+  if (!confirm(`Rätta betet?\nVinnande alternativ: "${bet.options[winningIndex]}"`)) return;
+  await db.collection('bets').doc(betId).update({ status: 'settled', winningIndex });
+  toast(`Bet avgjort! Vinnare: "${bet.options[winningIndex]}"`);
+  renderBettingAdmin();
+}
+
+async function deleteBet(betId) {
+  if (!confirm('Ta bort betet permanent? Alla inlagda bets raderas också.')) return;
+  const entriesSnap = await db.collection('betEntries').where('betId', '==', betId).get();
+  const batch = db.batch();
+  entriesSnap.docs.forEach(d => batch.delete(d.ref));
+  batch.delete(db.collection('bets').doc(betId));
+  await batch.commit();
+  toast('Bet borttaget');
+  renderBettingAdmin();
+}
+
+// ═══════════════════════════════════════════════
+// ADMIN BINGO BANNER
+// ═══════════════════════════════════════════════
+const _adminBingoDismissed = new Set();
+let _adminBingoUnsub = null;
+
+function startAdminBingoBanner() {
+  if (_adminBingoUnsub) _adminBingoUnsub();
+  _adminBingoUnsub = db.collection('bingo').where('hasBingo', '==', true)
+    .onSnapshot(snap => {
+      const winners = snap.docs.map(d => d.data());
+      window._adminBingoWinners = winners;
+      const banner = document.getElementById('adminBingoBanner');
+      if (!banner) return;
+      const newWinners = winners.filter(w => !_adminBingoDismissed.has(w.userId));
+      if (newWinners.length) {
+        const names = newWinners.map(w => w.userName).join(', ');
+        banner.textContent = '\uD83C\uDF89 BINGO! ' + names + ' har bingo! \u2014 Klicka f\u00F6r att st\u00E4nga';
+        banner.classList.add('visible');
+      } else {
+        banner.classList.remove('visible');
+      }
+    });
+}
+
+function dismissAdminBingoBanner() {
+  (window._adminBingoWinners || []).forEach(w => _adminBingoDismissed.add(w.userId));
+  const banner = document.getElementById('adminBingoBanner');
+  if (banner) banner.classList.remove('visible');
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+renderDashboard();
+startAdminBingoBanner();
+
+  async function sendNotificationToAll(title, body, data = {}) {
+  try {
+    const response = await fetch('https://notiser.onrender.com/send-notification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title,
+        body,
+        data: {
+          ...data,
+          icon: 'https://firebasestorage.googleapis.com/v0/b/davids-svensexa.firebasestorage.app/o/Davidlogga.png?alt=media',
+          badge: 'https://firebasestorage.googleapis.com/v0/b/davids-svensexa.firebasestorage.app/o/Dave1.png?alt=media'
+        }
+      })
+    });
+    
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return true;
+  } catch (error) {
+    console.error('Fel vid skickande av notis:', error);
+    throw error;
+  }
+}
+</script>
+</body>
+</html>
