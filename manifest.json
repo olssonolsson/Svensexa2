@@ -1,7 +1,7 @@
 {
-  "name": "Davids Schweinsexa",
-  "short_name": "Schweinsexa",
-  "description": "Quiz, Bingo & Betting för Davids svensexa!",
+  "name": "Chucky gets Lucky",
+  "short_name": "Svensexa",
+  "description": "Johans svensexa!",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0a0a0f",
