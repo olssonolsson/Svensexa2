@@ -290,8 +290,7 @@
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
-<div id="adminBingoBanner" onclick="dismissAdminBingoBanner()"></div>
+
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -1047,37 +1046,6 @@ async function createQuestion() {
   }
 }
 
-
-
-// ═══════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════
-renderDashboard();
-startAdminBingoBanner();
-
-  async function sendNotificationToAll(title, body, data = {}) {
-  try {
-    const response = await fetch('https://notiser.onrender.com/send-notification', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title,
-        body,
-        data: {
-          ...data,
-          icon: 'https://firebasestorage.googleapis.com/v0/b/davids-svensexa.firebasestorage.app/o/Davidlogga.png?alt=media',
-          badge: 'https://firebasestorage.googleapis.com/v0/b/davids-svensexa.firebasestorage.app/o/Dave1.png?alt=media'
-        }
-      })
-    });
-    
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return true;
-  } catch (error) {
-    console.error('Fel vid skickande av notis:', error);
-    throw error;
-  }
-}
 </script>
 </body>
 </html>
