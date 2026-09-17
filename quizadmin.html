@@ -394,6 +394,18 @@ async function compressFile(file, maxPx = 800) {
     };
     reader.readAsDataURL(file);
   });
+  async function uploadImg(file, path) {
+  if (!file) return null;
+
+  const blob = await compressFile(file, 800);
+  if (!blob) {
+    throw new Error('Bilden kunde inte komprimeras.');
+  }
+
+  const ref = storage.ref(path);
+  await ref.put(blob);
+  return await ref.getDownloadURL();
+}
 }
 
 
