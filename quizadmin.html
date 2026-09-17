@@ -1045,7 +1045,11 @@ async function createQuestion() {
     btn.disabled = false; btn.textContent = 'Spara fråga →';
   }
 }
-
+// ═══════════════════════════════════════════════
+// INIT — kör dashboard direkt vid sidladdning
+// ═══════════════════════════════════════════════
+renderDashboard();
+  
 </script>
 </body>
 </html>
