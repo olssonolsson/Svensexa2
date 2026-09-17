@@ -329,8 +329,9 @@ function showToast(msg, isError = false) {
   appId: "1:1077378687645:web:2bc3dc6caa6f902e096a74",
   measurementId: "G-MWNDS78EWZ"
 };
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const storage = firebase.storage();
 
 // ═══════════════════════════════════════════════
 // STATE
