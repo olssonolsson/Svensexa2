@@ -22,6 +22,8 @@
     --accent3: #5cfcb4; --text: #f0f0fa; --text2: #8888aa;
     --correct: #5cfcb4; --wrong: #fc5c7c;
     --radius: 16px; --radius-sm: 10px;
+      /* Ungefärlig höjd på bottenmenyn */
+  --bottom-menu-height: 76px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
@@ -39,7 +41,7 @@
     position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
   }
   .blood-drip {
-    position: absolute; top: 64px; width: 2px;
+    position: absolute; top: 64px; width: 4px;
     background: linear-gradient(to bottom, rgba(120,0,10,0.55), rgba(90,0,8,0.32));
     border-radius: 0 0 4px 4px;
     opacity: 0;
@@ -454,7 +456,7 @@
     const leftPct = 6 + Math.random() * 88;           // spread across width
     const duration = 9 + Math.random() * 8;            // 9–17s per cycle
     const delay = -(Math.random() * duration);         // negative delay: start mid-cycle so drips are staggered on load
-    const widthPx = 1.5 + Math.random() * 1.5;
+    const widthPx = 3.5 + Math.random() * 3.5;
 
     const drip = document.createElement('div');
     drip.className = 'blood-drip';
