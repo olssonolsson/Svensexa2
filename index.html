@@ -35,12 +35,13 @@
   }
 
   /* ── BLOOD DRIP BACKGROUND EFFECT ── */
+  /* Sits above the fixed tab bar so the impact is always visible while scrolling. */
   #bloodFx {
-    position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+    position: fixed; inset: 0; z-index: 25; pointer-events: none; overflow: hidden;
   }
   .blood-drip {
     position: absolute; top: 64px; width: 4px;
-    background: linear-gradient(to bottom, rgba(120,0,10,0.55), rgba(90,0,8,0.32));
+    background: linear-gradient(to bottom, rgba(255,20,35,0.9), rgba(150,0,15,0.72));
     border-radius: 0 0 4px 4px;
     opacity: 0;
     animation-name: bloodFall;
@@ -49,31 +50,43 @@
   }
   .blood-drip::after {
     content: ''; position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
-    width: 5px; height: 6px; border-radius: 50% 50% 50% 0;
-    background: rgba(120,0,10,0.5);
+    width: 7px; height: 9px; border-radius: 50% 50% 50% 0;
+    background: rgba(255,20,35,0.9);
   }
   .blood-splat {
-    position: absolute; bottom: 0; width: 22px; height: 9px; margin-left: -11px;
+    position: absolute;
+    /* Keep the splat in the visible tab-bar area, including mobile safe areas. */
+    bottom: calc(22px + env(safe-area-inset-bottom));
+    width: 46px; height: 18px; margin-left: -23px;
     border-radius: 50%;
-    background: radial-gradient(ellipse at center, rgba(110,0,10,0.5) 0%, rgba(110,0,10,0.22) 45%, transparent 75%);
+    background: radial-gradient(ellipse at center,
+      rgba(255,25,40,0.98) 0%, rgba(220,0,20,0.9) 42%, rgba(130,0,12,0.55) 68%, transparent 78%);
+    box-shadow: 0 0 12px rgba(255,0,25,0.75), 0 0 2px 2px rgba(255,35,45,0.55);
     opacity: 0;
     animation-name: bloodSplat;
     animation-timing-function: ease-out;
     animation-iteration-count: infinite;
   }
+  .blood-splat::before,
+  .blood-splat::after {
+    content: ''; position: absolute; bottom: 4px; width: 8px; height: 17px;
+    border-radius: 50%; background: rgba(235,5,25,0.9);
+  }
+  .blood-splat::before { left: -9px; transform: rotate(28deg); }
+  .blood-splat::after { right: -9px; transform: rotate(-28deg); }
   @keyframes bloodFall {
     0%   { height: 0px;  opacity: 0; }
-    6%   { opacity: 0.55; }
-    78%  { opacity: 0.55; }
-    88%  { height: calc(100vh - 64px); opacity: 0.4; }
+    6%   { opacity: 0.85; }
+    78%  { opacity: 0.85; }
+    88%  { height: calc(100vh - 64px); opacity: 0.7; }
     92%  { height: calc(100vh - 64px); opacity: 0; }
     100% { height: 0px; opacity: 0; }
   }
   @keyframes bloodSplat {
     0%, 86%  { opacity: 0; transform: scale(0.2); }
-    89%      { opacity: 0.55; transform: scale(1); }
-    97%      { opacity: 0.25; transform: scale(1.15); }
-    100%     { opacity: 0; transform: scale(1.15); }
+    89%      { opacity: 1; transform: scale(1); }
+    97%      { opacity: 0.65; transform: scale(1.18); }
+    100%     { opacity: 0; transform: scale(1.18); }
   }
 
   /* ── Eget typsnitt på vissa delar ── */
@@ -95,13 +108,12 @@
          /*  -webkit-text-stroke: 1.5px white; */
         }
 
-  
   /* ── LOADING ── */
   #loadingScreen {
     position: fixed; inset: 0; background: var(--bg); z-index: 999;
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
   }
-  .loading-logo { font-family: 'Syne', sans-serif; font-size: 2.5rem; font-weight: 800; letter-spacing: -2px; background: linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .loading-logo { font-family: 'Syne', sans-serif; font-size: 2.5rem; font-weight: 800; letter-spacing: -2px; background: linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip:[...]
   .loading-spin { width: 36px; height: 36px; border-radius: 50%; border: 3px solid rgba(124,92,252,0.2); border-top-color: var(--accent); animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -118,18 +130,18 @@
 
   /* ── START ── */
   #startScreen { align-items: center; justify-content: center; padding: 40px 20px; }
-  .start-logo { font-family: 'Syne', sans-serif; font-size: 3.2rem; font-weight: 800; letter-spacing: -2px; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px; text-align: center; }
+  .start-logo { font-family: 'Syne', sans-serif; font-size: 3.2rem; font-weight: 800; letter-spacing: -2px; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip:[...]
   .start-logo img { max-width: 900px; max-height: 450px; height: auto; width: auto; display: block; margin: 0 auto; }
   .start-sub { color: var(--text2); font-size: 0.9rem; margin-bottom: 48px; text-align: center; }
   .users-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px; width: 100%; max-width: 480px; margin-bottom: 32px; }
-  .user-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 20px 12px; text-align: center; cursor: pointer; transition: all 0.22s ease; position: relative; overflow: hidden; }
+  .user-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 20px 12px; text-align: center; cursor: pointer; transition: all 0.22s ease; positio[...]
   .user-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, var(--accent), var(--accent2)); opacity: 0; transition: opacity 0.2s; }
   .user-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 14px 32px rgba(124,92,252,0.15); }
   .user-card:hover::before { opacity: 0.07; }
   .user-card-av { width: 62px; height: 62px; font-size: 1.5rem; margin: 0 auto 10px; position: relative; z-index: 1; border: 2.5px solid rgba(255,255,255,0.1); }
   .user-name { font-size: 0.85rem; font-weight: 600; position: relative; z-index: 1; word-break: break-word; }
   .user-pts { font-size: 0.72rem; margin-top: 4px; position: relative; z-index: 1; font-family: 'Syne', sans-serif; font-weight: 700; color: var(--accent3); }
-  .new-user-card { background: transparent; border: 1.5px dashed var(--border); border-radius: var(--radius); padding: 20px 12px; text-align: center; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 120px; }
+  .new-user-card { background: transparent; border: 1.5px dashed var(--border); border-radius: var(--radius); padding: 20px 12px; text-align: center; cursor: pointer; transition: all 0.2s ease; displa[...]
   .new-user-card:hover { border-color: var(--accent); background: rgba(124,92,252,0.04); }
   .new-user-card .plus { font-size: 2rem; color: var(--text2); margin-bottom: 6px; }
   .new-user-card .label { font-size: 0.8rem; color: var(--text2); }
@@ -137,15 +149,15 @@
   /* ── MODAL ── */
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(10,10,15,0.88); z-index: 100; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(8px); }
   .modal-overlay.active { display: flex; }
-  .modal { background: var(--surface); border: 1.5px solid var(--border); border-radius: 22px; padding: 30px; width: 100%; max-width: 400px; animation: slideUp 0.25s ease; max-height: 90vh; overflow-y: auto; }
+  .modal { background: var(--surface); border: 1.5px solid var(--border); border-radius: 22px; padding: 30px; width: 100%; max-width: 400px; animation: slideUp 0.25s ease; max-height: 90vh; overflow-y[...]
   @keyframes slideUp { from { transform: translateY(28px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
   .modal h2 { font-family: 'Syne', sans-serif; font-size: 1.35rem; font-weight: 800; margin-bottom: 5px; }
   .modal p { color: var(--text2); font-size: 0.87rem; margin-bottom: 20px; }
-  .input-field { width: 100%; background: var(--surface2); border: 1.5px solid var(--border); border-radius: var(--radius-sm); color: var(--text); padding: 13px 16px; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; margin-bottom: 12px; outline: none; transition: border-color 0.2s; }
+  .input-field { width: 100%; background: var(--surface2); border: 1.5px solid var(--border); border-radius: var(--radius-sm); color: var(--text); padding: 13px 16px; font-family: 'DM Sans', sans-seri[...]
   .input-field:focus { border-color: var(--accent); }
   .input-field::placeholder { color: var(--text2); }
 
-  .photo-picker { display: flex; align-items: center; gap: 14px; background: var(--surface2); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 16px; cursor: pointer; transition: border-color 0.2s; }
+  .photo-picker { display: flex; align-items: center; gap: 14px; background: var(--surface2); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 16px; curso[...]
   .photo-picker:hover { border-color: var(--accent); }
   .photo-picker input { display: none; }
   .photo-picker-av { width: 54px; height: 54px; font-size: 1.3rem; flex-shrink: 0; transition: transform 0.2s; }
@@ -157,7 +169,7 @@
   .profile-av-big { width: 88px; height: 88px; font-size: 2.2rem; margin: 0 auto 8px; cursor: pointer; border: 3px solid var(--accent); transition: transform 0.2s, box-shadow 0.2s; }
   .profile-av-big:hover { transform: scale(1.05); box-shadow: 0 0 0 4px rgba(124,92,252,0.25); }
 
-  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 13px 24px; border-radius: var(--radius-sm); font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem; letter-spacing: 0.02em; cursor: pointer; border: none; transition: all 0.2s ease; width: 100%; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 13px 24px; border-radius: var(--radius-sm); font-family: 'Syne', sans-serif; font-weight: 700; font-size[...]
   .btn-primary { background: linear-gradient(135deg, var(--accent), #5a3fcc); color: #fff; }
   .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(124,92,252,0.35); }
   .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
@@ -169,13 +181,13 @@
 
   /* ── HEADER ── */
   #mainScreen { padding-bottom: 80px; }
-  .app-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; position: sticky; top: 0; background: rgba(120,0,10,0.55); backdrop-filter: blur(14px); z-index: 10; border-bottom: 1px solid var(--border); }
+  .app-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; position: sticky; top: 0; background: rgba(120,0,10,0.55); backdrop-filter: blur(14px); z-i[...]
   .header-left { display: flex; align-items: center; gap: 10px; cursor: pointer; border-radius: 100px; padding: 4px 12px 4px 4px; border: 1.5px solid transparent; transition: border-color 0.2s; }
   .header-left:hover { border-color: var(--accent); }
   .header-av { width: 38px; height: 38px; font-size: 0.95rem; box-shadow: 0 0 0 2px var(--accent); }
   .header-name { font-family: 'maiden', sans-serif; font-weight: 700; font-size: 1.30rem; -webkit-text-stroke: 0.5px white; }
   .header-right { display: flex; align-items: center; gap: 8px; }
-  .header-pts { background: var(--surface2); border: 1px solid var(--border); border-radius: 100px; padding: 5px 14px; font-size: 0.78rem; font-family: 'Syne', sans-serif; font-weight: 700; color: var(--accent3); }
+  .header-pts { background: var(--surface2); border: 1px solid var(--border); border-radius: 100px; padding: 5px 14px; font-size: 0.78rem; font-family: 'Syne', sans-serif; font-weight: 700; color[...]
   .logout-btn { background: var(--surface2); border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--text2); font-size: 1rem; padding: 6px 10px; transition: all 0.2s; }
   .logout-btn:hover { color: var(--wrong); border-color: rgba(252,92,124,0.4); }
   .refresh-btn { background: var(--surface2); border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--text2); font-size: 1rem; padding: 6px 10px; transition: all 0.2s; }
@@ -183,8 +195,8 @@
   .refresh-btn.spinning { animation: spin 1s linear infinite; }
 
   /* ── TABS ── */
-  .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: rgba(120,0,10,0.55); backdrop-filter: blur(18px); border-top: 1px solid var(--border); z-index: 20; padding: 0 8px; padding-bottom: env(safe-area-inset-bottom); }
-  .tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 4px; cursor: pointer; background: none; border: none; color: var(--text2); font-family: 'DM Sans', sans-serif; font-size: 0.68rem; gap: 5px; transition: color 0.2s; position: relative; }
+  .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: rgba(120,0,10,0.55); backdrop-filter: blur(18px); border-top: 1px solid var(--border); z-index: 20; padding: 0 8p[...]
+  .tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 4px; cursor: pointer; background: none; border: none; color: var(--text2); font[...]
   .tab-btn .tab-icon { font-size: 1.25rem; }
   .tab-btn.active { color: var(--accent); }
   .tab-btn.active::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 32px; height: 2.5px; background: var(--accent); border-radius: 0 0 4px 4px; }
@@ -193,14 +205,14 @@
 
   /* ── TAB 1 ── */
   .section-title { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; margin-bottom: 20px; letter-spacing: -0.5px; }
-  .lb-item { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 10px; transition: all 0.2s; }
+  .lb-item { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 10px; transi[...]
   .lb-item:hover { border-color: rgba(124,92,252,0.4); transform: translateX(2px); }
   .lb-item.gold   { border-color: rgba(255,215,0,0.45); background: rgba(255,215,0,0.03); }
   .lb-item.silver { border-color: rgba(192,192,192,0.35); }
   .lb-item.bronze { border-color: rgba(205,127,50,0.35); }
   .lb-item.me     { outline: 2px solid var(--accent); outline-offset: 1px; }
   .lb-medal { font-size: 1.4rem; width: 28px; text-align: center; flex-shrink: 0; }
-  .lb-rank { width: 28px; height: 28px; border-radius: 50%; background: var(--surface2); border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.75rem; color: var(--text2); flex-shrink: 0; }
+  .lb-rank { width: 28px; height: 28px; border-radius: 50%; background: var(--surface2); border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: 'S[...]
   .lb-av { width: 42px; height: 42px; font-size: 1rem; border: 2px solid rgba(255,255,255,0.07); flex-shrink: 0; }
   .lb-info { flex: 1; min-width: 0; }
   .lb-name { font-weight: 600; font-size: 0.92rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -208,7 +220,7 @@
   .lb-sub { font-size: 0.73rem; color: var(--text2); margin-top: 2px; }
   .lb-pts { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--accent3); }
   .history-section { margin-top: 32px; }
-  .hist-item { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; display: flex; gap: 12px; align-items: flex-start; }
+  .hist-item { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; display: flex; gap: 12px; align-items: flex-start; [...]
   .hist-av { width: 34px; height: 34px; font-size: 0.85rem; flex-shrink: 0; }
   .hist-q { font-size: 0.88rem; font-weight: 500; margin-bottom: 7px; line-height: 1.4; }
   .hist-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
@@ -222,7 +234,7 @@
   .question-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 20px; padding: 24px; margin-bottom: 20px; }
   .question-img { width: 100%; border-radius: var(--radius); margin-bottom: 18px; height: auto; }
   .question-text { font-family: 'Syne', sans-serif; font-size: 1.15rem; font-weight: 700; line-height: 1.45; margin-bottom: 22px; }
-  .opt-btn { width: 100%; text-align: left; background: var(--surface2); border: 1.5px solid var(--border); border-radius: var(--radius-sm); color: var(--text); padding: 13px 16px; font-family: 'DM Sans', sans-serif; font-size: 0.92rem; cursor: pointer; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; transition: all 0.2s; position: relative; overflow: hidden; }
+  .opt-btn { width: 100%; text-align: left; background: var(--surface2); border: 1.5px solid var(--border); border-radius: var(--radius-sm); color: var(--text); padding: 13px 16px; font-family: 'DM Sa[...]
   .opt-btn:hover:not(:disabled) { border-color: var(--accent); background: rgba(124,92,252,0.06); }
   .opt-btn.sel    { border-color: var(--accent); background: rgba(124,92,252,0.1); }
   .opt-btn.ok     { border-color: var(--correct); background: rgba(92,252,180,0.09); }
@@ -230,10 +242,10 @@
   .opt-btn.picked { border-color: var(--accent); background: rgba(124,92,252,0.08); opacity: 0.85; }
   .opt-btn.picked .opt-letter { background: var(--accent); color: #fff; }
   .opt-btn:disabled { cursor: default; }
-  .opt-letter { width: 28px; height: 28px; border-radius: 8px; background: var(--surface); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.8rem; flex-shrink: 0; position: relative; z-index: 1; }
+  .opt-letter { width: 28px; height: 28px; border-radius: 8px; background: var(--surface); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 80[...]
   .opt-bar { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(124,92,252,0.07); transition: width 0.7s ease; width: 0; }
   .opt-pct { margin-left: auto; font-size: 0.78rem; color: var(--text2); font-weight: 600; position: relative; z-index: 1; }
-  .waiting-banner { display: flex; flex-direction: column; align-items: flex-start; padding: 15px; gap: 14px; background: rgba(124,92,252,0.08); border: 1.5px solid rgba(124,92,252,0.3); border-radius: var(--radius); padding: 16px 18px; margin-top: 16px; animation: fadeIn 0.4s ease; }
+  .waiting-banner { display: flex; flex-direction: column; align-items: flex-start; padding: 15px; gap: 14px; background: rgba(124,92,252,0.08); border: 1.5px solid rgba(124,92,252,0.3); border-radius[...]
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   .waiting-av { width: 44px; height: 44px; font-size: 1.1rem; flex-shrink: 0; border: 2px solid var(--accent); }
   .waiting-text { flex: 1; }
@@ -252,7 +264,7 @@
   .result-detail { font-size: 0.84rem; color: var(--text2); margin-top: 5px; line-height: 1.5; }
   .who-answered { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border); }
   .who-label { font-size: 0.75rem; color: var(--text2); flex-shrink: 0; }
-  .who-chip { display: inline-flex; align-items: center; gap: 5px; background: var(--surface2); border: 1px solid var(--border); border-radius: 100px; padding: 3px 10px 3px 3px; font-size: 0.72rem; font-weight: 500; }
+  .who-chip { display: inline-flex; align-items: center; gap: 5px; background: var(--surface2); border: 1px solid var(--border); border-radius: 100px; padding: 3px 10px 3px 3px; font-size: 0.72rem; fo[...]
   .who-chip-av { width: 22px; height: 22px; font-size: 0.5rem; }
   .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .result-group { border-radius: var(--radius-sm); padding: 12px 14px; }
@@ -275,15 +287,15 @@
   .opts-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
   .opt-input-row { display: flex; align-items: center; gap: 10px; }
   .opt-input-row .input-field { margin-bottom: 0; flex: 1; }
-  .rm-opt-btn { width: 32px; height: 32px; border-radius: 8px; background: var(--surface2); border: 1.5px solid var(--border); color: var(--wrong); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; }
+  .rm-opt-btn { width: 32px; height: 32px; border-radius: 8px; background: var(--surface2); border: 1.5px solid var(--border); color: var(--wrong); cursor: pointer; display: flex; align-items: center;[...]
   .rm-opt-btn:hover { background: rgba(252,92,124,0.1); }
-  .add-opt-btn { width: 100%; background: transparent; border: 1.5px dashed var(--border); border-radius: var(--radius-sm); color: var(--text2); padding: 11px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; transition: all 0.2s; }
+  .add-opt-btn { width: 100%; background: transparent; border: 1.5px dashed var(--border); border-radius: var(--radius-sm); color: var(--text2); padding: 11px; cursor: pointer; font-family: 'DM Sans',[...]
   .add-opt-btn:hover { border-color: var(--accent); color: var(--accent); }
   .upload-area { border: 1.5px dashed var(--border); border-radius: var(--radius); padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; }
   .upload-area:hover { border-color: var(--accent); }
   .upload-area input { display: none; }
   .upload-preview { width: 100%; border-radius: var(--radius); max-height: 200px; object-fit: cover; margin-top: 12px; display: none; }
-  .success-msg { background: rgba(92,252,180,0.1); border: 1.5px solid var(--correct); border-radius: var(--radius); padding: 14px 18px; font-size: 0.88rem; color: var(--correct); margin-bottom: 16px; display: none; text-align: center; }
+  .success-msg { background: rgba(92,252,180,0.1); border: 1.5px solid var(--correct); border-radius: var(--radius); padding: 14px 18px; font-size: 0.88rem; color: var(--correct); margin-bottom: 16px;[...]
   .empty-state { text-align: center; padding: 40px 20px; color: var(--text2); font-size: 0.88rem; }
 
 </style>
@@ -304,7 +316,7 @@
 <!-- ── START ── -->
 <div id="startScreen" class="screen">
   <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:200px 100px;">
-    <div class="start-logo"><img src="https://firebasestorage.googleapis.com/v0/b/johans-svensexa.firebasestorage.app/o/johanlogga.png?alt=media&token=5dae7b74-0047-47c8-8794-5a1e57f06e66" alt="Johans skräcksexa"></div>
+    <div class="start-logo"><img src="https://firebasestorage.googleapis.com/v0/b/johans-svensexa.firebasestorage.app/o/johanlogga.png?alt=media&token=5dae7b74-0047-47c8-8794-5a1e57f06e66" alt="Johans[...]
     <p class="start-sub">Välj din användare eller skapa ny</p>
     <div class="users-grid" id="usersGrid"></div>
     <div style="width:100%;max-width:480px;text-align:center;">
@@ -322,7 +334,7 @@
     </div>
     <div style="position:relative;">
       <input class="input-field" type="password" id="loginPw" placeholder="Lösenord..." onkeydown="if(event.key==='Enter')doLogin()" style="padding-right:48px;">
-      <button onclick="toggleLoginPw()" title="Visa/dölj lösenord" style="position:absolute;right:12px;top:50%;transform:translateY(-60%);background:none;border:none;cursor:pointer;color:var(--text2);font-size:1.1rem;padding:4px;" id="loginPwToggle">👁</button>
+      <button onclick="toggleLoginPw()" title="Visa/dölj lösenord" style="position:absolute;right:12px;top:50%;transform:translateY(-60%);background:none;border:none;cursor:pointer;color:var(--text2[...]
     </div>
     <div class="modal-error" id="loginErr" style="display:none"></div>
     <button class="btn btn-primary" id="loginBtn" onclick="doLogin()">Logga in →</button>
@@ -617,7 +629,7 @@ async function renderStart() {
   } catch (e) {
     console.error('Kunde inte läsa användare:', e);
     document.getElementById('loadingScreen').style.display = 'none';
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--wrong);">Kunde inte ansluta till databasen. Kontrollera att Cloud Firestore är aktiverat i Firebase-projektet.</div>';
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--wrong);">Kunde inte ansluta till databasen. Kontrollera att Cloud Firestore är aktiverat i Firebase-proje[...]
   }
 }
 
@@ -998,349 +1010,4 @@ async function renderLeaderboard() {
       const rank = i + 1;
       const isMe = u.id === cu.id;
       const medals = ['🥇', '🥈', '🥉'];
-      const rankEl = rank <= 3 ? `<div class="lb-medal">${medals[rank - 1]}</div>` : `<div class="lb-rank">${rank}</div>`;
-      const cls = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
-      const d = document.createElement('div');
-      d.className = `lb-item ${cls} ${isMe ? 'me' : ''}`;
-      d.innerHTML = `
-        ${rankEl}
-        ${avHTML(u, 42, 'lb-av')}
-        <div class="lb-info">
-          <div class="lb-name">${u.name}${isMe ? ' <span class="me-tag">du</span>' : ''}</div>
-          <div class="lb-sub">${(u.history || []).length} svar</div>
-        </div>
-        <div class="lb-pts">${u.points || 0}p</div>
-      `;
-      lb.appendChild(d);
-    });
-  }
-
-  // History for current user
-  hl.innerHTML = '';
-  const hist = (cu.history || []).slice().reverse();
-  if (!hist.length) {
-    hl.innerHTML = '<div class="empty-state">Du har inte svarat på några frågor än.</div>';
-    return;
-  }
-  hist.forEach(h => {
-    const isPending = h.pending === true;
-    const d = document.createElement('div');
-    d.className = 'hist-item';
-    d.innerHTML = `
-      ${avHTML(cu, 34, 'hist-av')}
-      <div style="flex:1;min-width:0;">
-        <div class="hist-q">${h.question}</div>
-        <div class="hist-meta">
-          ${isPending
-            ? `<span class="rbadge" style="background:rgba(124,92,252,0.15);color:var(--accent);">⏳ Ej rättad</span>`
-            : `<span class="rbadge ${h.correct ? 'rbadge-ok' : 'rbadge-err'}">${h.correct ? '✓ Rätt' : '✗ Fel'}</span>
-               ${h.correct ? `<span class="hist-pts">+${h.points}p</span>` : ''}`
-          }
-          <span class="hist-ans">${h.answer}</span>
-        </div>
-      </div>
-    `;
-    hl.appendChild(d);
-  });
-}
-
-// ═══════════════════════════════════════════════
-// QUESTION (TAB 2)
-// ═══════════════════════════════════════════════
-async function renderQuestion() {
-  const area = document.getElementById('questionArea');
-  area.innerHTML = '<div class="no-question"><div class="loading-spin" style="margin:0 auto;"></div></div>';
-
-  // Get active question
-  const snap = await db.collection('questions').where('active', '==', true).limit(1).get();
-  if (snap.empty) {
-    area.innerHTML = `<div class="no-question"><p>Ingen fråga är aktiv just nu.<br>Ta en öl så länge! 🍻</p><img src="https://firebasestorage.googleapis.com/v0/b/davids-svensexa.firebasestorage.app/o/Davegif1.gif?alt=media" alt="Loading" style="width:200px;height:200px;margin-top:20px;"></div>`;
-    return;
-  }
-
-  const q = { id: snap.docs[0].id, ...snap.docs[0].data() };
-  const graded = !!q.graded;
-
-  // Get my answer
-  const ansDoc = await db.collection('answers').doc(`${q.id}_${cu.id}`).get();
-  const answered = ansDoc.exists;
-  const myAns = answered ? ansDoc.data().answerIndex : undefined;
-
-  // Get all answers for stats
-  const allAnsSnap = await db.collection('answers').where('questionId', '==', q.id).get();
-  const total = allAnsSnap.size;
-  const counts = q.options.map((_, i) => allAnsSnap.docs.filter(d => d.data().answerIndex === i).length);
-
-  
-
-// Result box
-let resultHtml = '';
-if (answered && graded) {
-    const correct = myAns === q.correctIndex;
-    
-    // Om du vill använda en specifik bild för RÄTT och en för FEL:
-    const resultImage = correct 
-        ? 'https://firebasestorage.googleapis.com/v0/b/davids-svensexa.firebasestorage.app/o/Davebog.JPG?alt=media&token=cf9b7324-e2fd-467f-8d1b-64113caade01' 
-        : 'https://firebasestorage.googleapis.com/v0/b/davids-svensexa.firebasestorage.app/o/Davefacepalm.jpg?alt=media&token=e1b4f8c7-2ac9-443b-a425-2dddc180ea11';
-
-    resultHtml = `
-      <div class="answer-result ${correct ? 'ok' : 'err'}">
-        ${avHTML(cu, 80, 'result-big-av')}
-        
-        <div class="result-headline">${correct ? '🍻 Rätt svar, SKÅL!' : '😬 Fel svar!'}</div>
-        
-        <img src="${resultImage}" style="width:100%; max-width:200px; border-radius:12px; margin: 15px auto; display:block;">
-        
-        <div class="result-detail">
-          ${correct
-            ? `Snyggt jobbat, <strong>${cu.name}</strong>! Du fick <strong>+${q.points || 1} poäng</strong>.`
-            : `Rätt svar var: <strong>${q.options[q.correctIndex]}</strong>`
-          }
-        </div>
-      </div>`;
-}
-
-// Waiting banner
-let waitingHtml = '';
-if (answered && !graded) {
-    waitingHtml = `
-      <div class="waiting-banner" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
-        <div class="waiting-content-top" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
-          ${avHTML(cu, 44, 'waiting-av')}
-          <div class="waiting-text" style="margin-top: 12px;">
-            <div class="waiting-title" style="font-weight: bold;">Svar inskickat!</div>
-            <div class="waiting-sub">Hetsa de andra så vi blir klara snart!</div>
-          </div>
-        </div>
-
-        <div class="waiting-gif-container" style="width: 100%; text-align: center; margin-top: 15px;">
-          <img src="https://firebasestorage.googleapis.com/v0/b/davids-svensexa.firebasestorage.app/o/Davegif1.gif?alt=media" 
-               alt="Loading" 
-               style="width: 200px; height: 200px; border-radius: 10px;">
-        </div>
-      </div>`;
-}
-  const imgHtml = q.image ? `<img src="${q.image}" class="question-img" alt="">` : '';
-
-  // Options
-  const letters = 'ABCDEFGH';
-  const optHtml = q.options.map((opt, i) => {
-    let cls = '';
-    if (answered && graded) {
-      if (i === q.correctIndex) cls = 'ok';
-      else if (i === myAns)     cls = 'err';
-    } else if (answered) {
-      if (i === myAns) cls = 'picked';
-    } else if (i === (_sel ?? -1)) cls = 'sel';
-    const pct = (graded && total > 0) ? Math.round(counts[i] / total * 100) : 0;
-    const showBar = graded;
-    return `
-      <button class="opt-btn ${cls}" ${answered ? 'disabled' : ''} onclick="selectOpt(${i},this)">
-        ${showBar ? `<div class="opt-bar" style="width:${pct}%"></div>` : ''}
-        <span class="opt-letter">${letters[i]}</span>
-        <span style="position:relative;z-index:1;flex:1;">${opt}</span>
-        ${showBar ? `<span class="opt-pct">${pct}%</span>` : ''}
-      </button>`;
-  }).join('');
-
-  // Who answered — split into correct / wrong
-  let whoHtml = '';
-  if (graded && total > 0) {
-    const answerMap = {};
-    allAnsSnap.docs.forEach(d => { answerMap[d.data().userId] = d.data().answerIndex; });
-    const usersSnap = await db.collection('users').get();
-    const allUsers = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-    const correctUsers = allUsers.filter(u => answerMap[u.id] !== undefined && answerMap[u.id] === q.correctIndex);
-    const wrongUsers   = allUsers.filter(u => answerMap[u.id] !== undefined && answerMap[u.id] !== q.correctIndex);
-
-    const userRow = (u) => `
-      <div class="result-user-row">
-        ${avHTML(u, 28, '')}
-        <div>
-          <div class="result-user-name">${u.name}</div>
-          <div class="result-user-ans">${q.options[answerMap[u.id]]}</div>
-        </div>
-      </div>`;
-
-    whoHtml = `
-      <div class="who-answered">
-        <div style="font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:var(--text2);margin-bottom:12px;">Resultat</div>
-        <div class="results-grid">
-          <div class="result-group correct-group">
-            <div class="result-group-title">✓ Rätt (${correctUsers.length})</div>
-            ${correctUsers.length ? correctUsers.map(userRow).join('') : '<div style="font-size:0.78rem;color:var(--text2);">Ingen</div>'}
-          </div>
-          <div class="result-group wrong-group">
-            <div class="result-group-title">✗ Fel (${wrongUsers.length})</div>
-            ${wrongUsers.length ? wrongUsers.map(userRow).join('') : '<div style="font-size:0.78rem;color:var(--text2);">Ingen</div>'}
-          </div>
-        </div>
-      </div>`;
-  }
-
-  const ansCountHtml = answered && !graded
-    ? `<div style="text-align:center;font-size:0.76rem;color:var(--text2);margin-top:10px;">${total} person(er) har svarat — väntar på rättning</div>`
-    : '';
-
-  const ansBtn = !answered ? `<button class="btn btn-primary" onclick="doAnswer('${q.id}')" style="margin-top:8px;">Svara →</button>` : '';
-
-  area.innerHTML = `
-    <div class="question-card">
-      ${imgHtml}
-      <div class="question-text">${q.text}</div>
-      ${optHtml}
-      ${waitingHtml}
-      ${resultHtml}
-      ${ansBtn}
-      ${ansCountHtml}
-      ${whoHtml}
-    </div>`;
-
-  _sel = answered ? myAns : undefined;
-}
-
-function selectOpt(i, btn) {
-  document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('sel'));
-  btn.classList.add('sel');
-  _sel = i;
-}
-
-async function doAnswer(questionId) {
-  if (_sel === undefined) { alert('Välj ett alternativ först!'); return; }
-
-  const ansBtn = document.querySelector('#questionArea .btn-primary');
-  if (ansBtn) { ansBtn.disabled = true; ansBtn.textContent = 'Sparar…'; }
-
-  try {
-    // Get question text for history
-    const qDoc = await db.collection('questions').doc(questionId).get();
-    const q = { id: qDoc.id, ...qDoc.data() };
-
-    // Save answer to Firestore
-    await db.collection('answers').doc(`${questionId}_${cu.id}`).set({
-      questionId, userId: cu.id, answerIndex: _sel,
-      answeredAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    // Add pending history entry to user
-    const histEntry = {
-      questionId, question: q.text,
-      answer: q.options[_sel],
-      pending: true, correct: null, points: 0,
-      date: new Date().toLocaleDateString('sv-SE')
-    };
-    const newHistory = [...(cu.history || []).filter(h => h.questionId !== questionId), histEntry];
-    await db.collection('users').doc(cu.id).update({ history: newHistory });
-    cu = { ...cu, history: newHistory };
-
-    renderApp();
-    renderQuestion();
-  } catch (e) {
-    showToast('❌ Kunde inte spara svaret: ' + e.message, true);
-    if (ansBtn) { ansBtn.disabled = false; ansBtn.textContent = 'Svara →'; }
-  }
-}
-
-// ═══════════════════════════════════════════════
-// SUBMIT QUESTION (TAB 3)
-// ═══════════════════════════════════════════════
-function renderSubOpts() {
-  const l = document.getElementById('subOptsList');
-  if (!l.children.length) { addSubOpt(); addSubOpt(); }
-}
-
-function addSubOpt() {
-  const l = document.getElementById('subOptsList');
-  const row = document.createElement('div');
-  row.className = 'opt-input-row';
-  row.innerHTML = `
-    <input class="input-field" type="text" placeholder="Alternativ ${l.children.length + 1}...">
-    <button class="rm-opt-btn" onclick="rmOpt(this)">✕</button>`;
-  l.appendChild(row);
-}
-
-function rmOpt(btn) {
-  const l = document.getElementById('subOptsList');
-  if (l.children.length <= 2) return;
-  btn.parentElement.remove();
-}
-
-async function submitQ() {
-  const text = document.getElementById('subQ').value.trim();
-  const rows = document.querySelectorAll('#subOptsList .opt-input-row input');
-  const opts = Array.from(rows).map(i => i.value.trim()).filter(Boolean);
-  const ci = document.getElementById('subCorrect').value;
-  if (!text) { alert('Skriv en fråga!'); return; }
-  if (opts.length < 2) { alert('Lägg till minst 2 alternativ!'); return; }
-
-  try {
-    let imageUrl = null;
-    if (subImgFile) {
-      const blob = await compressFile(subImgFile, 800);
-      imageUrl = await uploadToStorage(`question-images/${Date.now()}.jpg`, blob);
-    }
-
-    await db.collection('submitted').add({
-      text, options: opts,
-      correctIndex: ci ? parseInt(ci) - 1 : null,
-      image: imageUrl,
-      submittedBy: cu.name, submittedById: cu.id,
-      submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      status: 'pending'
-    });
-
-    document.getElementById('subQ').value = '';
-    document.getElementById('subCorrect').value = '';
-    document.getElementById('subOptsList').innerHTML = '';
-    subImgFile = null;
-    document.getElementById('subImgPrev').style.display = 'none';
-    document.getElementById('subImgInput').value = '';
-    addSubOpt(); addSubOpt();
-
-    const ok = document.getElementById('submitOk');
-    ok.style.display = 'block';
-    setTimeout(() => ok.style.display = 'none', 3000);
-  } catch (e) {
-    showToast('❌ Fel: ' + e.message, true);
-  }
-}
-
-// ═══════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════
-history.replaceState({ screen: 'start' }, '');
-
-// Kontrollera om användaren är admin (byt ut ID:t mot ditt eget Firebase UID)
-if (cu && cu.id === 'si0qVZ6vM1cZD9dSaoDl') {
-  document.getElementById('adminNotisPanel').style.display = 'block';
-}
-  
-// Vänta på att Firebase är redo innan vi fortsätter
-window.addEventListener('load', async function() {
-  try {
-    const savedUid = localStorage.getItem('svensexa_uid');
-    const savedTab = parseInt(localStorage.getItem('svensexa_tab') || '1', 10);
-    if (savedUid) {
-      try {
-        const doc = await db.collection('users').doc(savedUid).get();
-        if (doc.exists) {
-          document.getElementById('loadingScreen').style.display = 'none';
-          loginAs({ id: doc.id, ...doc.data() }, savedTab);
-          return;
-        }
-      } catch(e) { 
-        console.error('Kunde inte hämta användare:', e);
-      }
-      localStorage.removeItem('svensexa_uid');
-    }
-    renderStart();
-  } catch(e) {
-    console.error('Init-fel:', e);
-    document.getElementById('loadingScreen').innerHTML = '<div class="loading-logo">Fel</div><p style="color:var(--wrong);margin-top:10px;">Kunde inte ansluta till databasen</p>';
-  }
-});
-
-</script>
-</body>
-</html>
+[...]
