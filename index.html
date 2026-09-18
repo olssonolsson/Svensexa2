@@ -22,6 +22,8 @@
     --accent3: #5cfcb4; --text: #f0f0fa; --text2: #8888aa;
     --correct: #5cfcb4; --wrong: #fc5c7c;
     --radius: 16px; --radius-sm: 10px;
+      /* Ungefärlig höjd på bottenmenyn */
+  --bottom-menu-height: 76px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
@@ -38,45 +40,138 @@
   #bloodFx {
     position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
   }
-  .blood-drip {
-    position: absolute; top: 64px; width: 4px;
-    background: linear-gradient(to bottom, rgba(120,0,10,0.55), rgba(90,0,8,0.32));
-    border-radius: 0 0 4px 4px;
+.blood-drip {
+  position: absolute;
+  top: 64px;
+  width: 4px;
+  background: linear-gradient(
+    to bottom,
+    rgba(150, 0, 12, 0.7),
+    rgba(90, 0, 8, 0.45)
+  );
+  border-radius: 0 0 8px 8px;
+  opacity: 0;
+  animation-name: bloodFall;
+  animation-timing-function: cubic-bezier(0.55, 0, 0.85, 0.35);
+  animation-iteration-count: infinite;
+}
+
+.blood-drip::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(150, 0, 12, 0.7);
+}
+
+.blood-splat {
+  position: absolute;
+  bottom: calc(
+    var(--bottom-menu-height) + env(safe-area-inset-bottom, 0px)
+  );
+  width: 42px;
+  height: 17px;
+  margin-left: -21px;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(150, 0, 12, 0.7) 0%,
+    rgba(110, 0, 10, 0.35) 45%,
+    transparent 75%
+  );
+  opacity: 0;
+  animation-name: bloodSplat;
+  animation-timing-function: ease-out;
+  animation-iteration-count: infinite;
+}
+
+@keyframes bloodFall {
+  0% {
+    height: 0;
     opacity: 0;
-    animation-name: bloodFall;
-    animation-timing-function: cubic-bezier(0.55,0,0.85,0.35);
-    animation-iteration-count: infinite;
-  }
-  .blood-drip::after {
-    content: ''; position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
-    width: 5px; height: 6px; border-radius: 50% 50% 50% 0;
-    background: rgba(120,0,10,0.5);
-  }
-  .blood-splat {
-    position: absolute; bottom: 0; width: 22px; height: 9px; margin-left: -11px;
-    border-radius: 50%;
-    background: radial-gradient(ellipse at center, rgba(110,0,10,0.5) 0%, rgba(110,0,10,0.22) 45%, transparent 75%);
-    opacity: 0;
-    animation-name: bloodSplat;
-    animation-timing-function: ease-out;
-    animation-iteration-count: infinite;
-  }
-  @keyframes bloodFall {
-    0%   { height: 0px;  opacity: 0; }
-    6%   { opacity: 0.55; }
-    78%  { opacity: 0.55; }
-    88%  { height: calc(100vh - 64px); opacity: 0.4; }
-    92%  { height: calc(100vh - 64px); opacity: 0; }
-    100% { height: 0px; opacity: 0; }
-  }
-  @keyframes bloodSplat {
-    0%, 86%  { opacity: 0; transform: scale(0.2); }
-    89%      { opacity: 0.55; transform: scale(1); }
-    97%      { opacity: 0.25; transform: scale(1.15); }
-    100%     { opacity: 0; transform: scale(1.15); }
   }
 
-  /* ── Eget typsnitt på vissa delar ── */
+  6% {
+    opacity: 0.7;
+  }
+
+  78% {
+    opacity: 0.7;
+  }
+
+  88% {
+    height: calc(
+      100vh
+      - 64px
+      - var(--bottom-menu-height)
+      - env(safe-area-inset-bottom, 0px)
+    );
+    opacity: 0.55;
+  }
+
+  92% {
+    height: calc(
+      100vh
+      - 64px
+      - var(--bottom-menu-height)
+      - env(safe-area-inset-bottom, 0px)
+    );
+    opacity: 0;
+  }
+
+  100% {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+/* ── Mjuk, rörlig blodpöl längst ner i headern — här "föds" dropparna ── */
+.header-blood-pool {
+  position: absolute;
+  left: 0; right: 0;
+  bottom: -9px;
+  height: 16px;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(to bottom, rgba(150,0,12,0.6) 0%, rgba(80,0,7,0.85) 100%);
+  clip-path: polygon(
+    0% 0%, 7% 0%, 14% 0%, 21% 0%, 28% 0%, 35% 0%, 42% 0%, 50% 0%,
+    57% 0%, 64% 0%, 71% 0%, 78% 0%, 85% 0%, 92% 0%, 100% 0%,
+    100% 50%, 92% 43%, 85% 42%, 78% 47%, 71% 54%, 64% 58%, 57% 56%,
+    50% 50%, 42% 43%, 35% 42%, 28% 47%, 21% 54%, 14% 58%, 7% 56%, 0% 50%
+  );
+  filter: blur(0.6px);
+  animation: headerPoolWave 7s ease-in-out infinite;
+}
+.header-blood-pool::after {
+  content: '';
+  position: absolute; left: 0; right: 0; top: 15%;
+  height: 25%;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.06), transparent);
+  clip-path: inherit;
+}
+@keyframes headerPoolWave {
+  0%, 100% {
+    clip-path: polygon(
+      0% 0%, 7% 0%, 14% 0%, 21% 0%, 28% 0%, 35% 0%, 42% 0%, 50% 0%,
+      57% 0%, 64% 0%, 71% 0%, 78% 0%, 85% 0%, 92% 0%, 100% 0%,
+      100% 50%, 92% 43%, 85% 42%, 78% 47%, 71% 54%, 64% 58%, 57% 56%,
+      50% 50%, 42% 43%, 35% 42%, 28% 47%, 21% 54%, 14% 58%, 7% 56%, 0% 50%
+    );
+  }
+  50% {
+    clip-path: polygon(
+      0% 0%, 7% 0%, 14% 0%, 21% 0%, 28% 0%, 35% 0%, 42% 0%, 50% 0%,
+      57% 0%, 64% 0%, 71% 0%, 78% 0%, 85% 0%, 92% 0%, 100% 0%,
+      100% 58%, 92% 54%, 85% 48%, 78% 43%, 71% 43%, 64% 49%, 57% 55%,
+      50% 58%, 42% 54%, 35% 48%, 28% 43%, 21% 43%, 14% 49%, 7% 55%, 0% 58%
+    );
+  }
+}
   /* 1. Här registrerar du typsnittet , finns nu: melted, zombie och satan*/
         @font-face {
             font-family: 'maiden';
@@ -373,6 +468,7 @@
 <!-- ── MAIN ── -->
 <div id="mainScreen" class="screen">
   <div class="app-header">
+    <div class="header-blood-pool"></div>
     <div class="maiden">
     <div class="header-left" onclick="openProfile()" title="Redigera profil">
       <div class="av header-av" id="headerAv"></div>
