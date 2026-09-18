@@ -129,6 +129,28 @@
   }
 }
 
+@keyframes bloodSplat {
+  0%, 86% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+
+  89% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+
+  97% {
+    opacity: 0.25;
+    transform: scale(1.15);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.15);
+  }
+}
+
 /* ── Mjuk, rörlig blodpöl längst ner i headern — här "föds" dropparna ── */
 .header-blood-pool {
   position: absolute;
