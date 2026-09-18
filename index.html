@@ -34,6 +34,48 @@
                 radial-gradient(ellipse 60% 40% at 80% 110%, rgba(252,92,124,0.10) 0%, transparent 60%);
   }
 
+  /* ── BLOOD DRIP BACKGROUND EFFECT ── */
+  #bloodFx {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  }
+  .blood-drip {
+    position: absolute; top: 64px; width: 2px;
+    background: linear-gradient(to bottom, rgba(120,0,10,0.55), rgba(90,0,8,0.32));
+    border-radius: 0 0 4px 4px;
+    opacity: 0;
+    animation-name: bloodFall;
+    animation-timing-function: cubic-bezier(0.55,0,0.85,0.35);
+    animation-iteration-count: infinite;
+  }
+  .blood-drip::after {
+    content: ''; position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+    width: 5px; height: 6px; border-radius: 50%;
+    background: rgba(120,0,10,0.5);
+  }
+  .blood-splat {
+    position: absolute; bottom: 0; width: 22px; height: 9px; margin-left: -11px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(110,0,10,0.5) 0%, rgba(110,0,10,0.22) 45%, transparent 75%);
+    opacity: 0;
+    animation-name: bloodSplat;
+    animation-timing-function: ease-out;
+    animation-iteration-count: infinite;
+  }
+  @keyframes bloodFall {
+    0%   { height: 0px;  opacity: 0; }
+    6%   { opacity: 0.55; }
+    78%  { opacity: 0.55; }
+    88%  { height: calc(100vh - 64px); opacity: 0.4; }
+    92%  { height: calc(100vh - 64px); opacity: 0; }
+    100% { height: 0px; opacity: 0; }
+  }
+  @keyframes bloodSplat {
+    0%, 86%  { opacity: 0; transform: scale(0.2); }
+    89%      { opacity: 0.55; transform: scale(1); }
+    97%      { opacity: 0.25; transform: scale(1.15); }
+    100%     { opacity: 0; transform: scale(1.15); }
+  }
+
   /* ── Eget typsnitt på vissa delar ── */
   /* 1. Här registrerar du typsnittet , finns nu: melted, zombie och satan*/
         @font-face {
@@ -248,6 +290,9 @@
 </head>
 <body>
 
+<!-- Blood drip background effect -->
+<div id="bloodFx"></div>
+
 <!-- Loading -->
 <div id="loadingScreen">
   <div class="loading-logo">Shpadoinkle!</div>
@@ -397,6 +442,36 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 
 <script>
+
+// ═══════════════════════════════════════════════
+// BLOOD DRIP BACKGROUND EFFECT
+// ═══════════════════════════════════════════════
+(function initBloodFx(){
+  const fx = document.getElementById('bloodFx');
+  if (!fx) return;
+  const DROP_COUNT = 7;
+  for (let i = 0; i < DROP_COUNT; i++) {
+    const leftPct = 6 + Math.random() * 88;           // spread across width
+    const duration = 9 + Math.random() * 8;            // 9–17s per cycle
+    const delay = -(Math.random() * duration);         // negative delay: start mid-cycle so drips are staggered on load
+    const widthPx = 1.5 + Math.random() * 1.5;
+
+    const drip = document.createElement('div');
+    drip.className = 'blood-drip';
+    drip.style.left = leftPct + '%';
+    drip.style.width = widthPx + 'px';
+    drip.style.animationDuration = duration + 's';
+    drip.style.animationDelay = delay + 's';
+    fx.appendChild(drip);
+
+    const splat = document.createElement('div');
+    splat.className = 'blood-splat';
+    splat.style.left = leftPct + '%';
+    splat.style.animationDuration = duration + 's';
+    splat.style.animationDelay = delay + 's';
+    fx.appendChild(splat);
+  }
+})();
 
 // ═══════════════════════════════════════════════
 // FIREBASE INIT
