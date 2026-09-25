@@ -1172,7 +1172,7 @@ async function renderQuestion() {
   // Get active question
   const snap = await db.collection('questions').where('active', '==', true).limit(1).get();
   if (snap.empty) {
-    area.innerHTML = `<div class="no-question"><p>Ingen fråga är aktiv just nu.<br>Ta en öl så länge! 🍻</p><img src="https://firebasestorage.googleapis.com/v0/b/davids-svensexa.firebasestorage.app/o/Davegif1.gif?alt=media" alt="Loading" style="width:200px;height:200px;margin-top:20px;"></div>`;
+    area.innerHTML = `<div class="no-question"><p>Ingen fråga är aktiv just nu.<br>Ta en öl så länge! 🍻</p></div>`;
     return;
   }
 
@@ -1198,8 +1198,8 @@ if (answered && graded) {
     
     // Om du vill använda en specifik bild för RÄTT och en för FEL:
     const resultImage = correct 
-        ? 'https://firebasestorage.googleapis.com/v0/b/davids-svensexa.firebasestorage.app/o/Davebog.JPG?alt=media&token=cf9b7324-e2fd-467f-8d1b-64113caade01' 
-        : 'https://firebasestorage.googleapis.com/v0/b/davids-svensexa.firebasestorage.app/o/Davefacepalm.jpg?alt=media&token=e1b4f8c7-2ac9-443b-a425-2dddc180ea11';
+        ? 'https://firebasestorage.googleapis.com/v0/b/johans-svensexa.firebasestorage.app/o/ratt.jfif?alt=media&token=b429671d-8b21-4d8e-b125-c0b2408217dd' 
+        : 'https://firebasestorage.googleapis.com/v0/b/johans-svensexa.firebasestorage.app/o/fel.jfif?alt=media&token=733e20c2-3871-4a47-a21c-99bea444d263';
 
     resultHtml = `
       <div class="answer-result ${correct ? 'ok' : 'err'}">
